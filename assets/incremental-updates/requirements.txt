@@ -1,0 +1,5 @@
+SPARQLWrapper
+boto3
+rdflib
+requests
+redis

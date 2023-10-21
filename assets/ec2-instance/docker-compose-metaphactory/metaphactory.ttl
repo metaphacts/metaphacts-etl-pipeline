@@ -1,0 +1,24 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix rep: <http://www.openrdf.org/config/repository#>.
+@prefix hr: <http://www.openrdf.org/config/repository/http#>.
+@prefix mph: <http://www.metaphacts.com/ontologies/platform/repository#> .
+@prefix lookup: <http://www.metaphacts.com/ontologies/platform/repository/lookup#> .
+@prefix pathfinder: <http://www.metaphacts.com/ontologies/platform/service/pathfinder/> .
+
+[] a rep:Repository ;
+   rep:repositoryID "default" ;
+   rdfs:label "GraphDB repository" ;
+   rep:repositoryImpl [
+      rep:repositoryType "metaphactory:GraphDBRepository" ;
+      hr:repositoryURL <http://graphdb:7200/repositories/metaphactory> ;
+      mph:username "${repository.default.username:admin}" ;
+      mph:password "${repository.default.password:root}"
+   ] ;
+   lookup:configuration [
+      lookup:type "metaphacts:graphdbSearch";
+      #lookup:cacheConfig "maximumSize=0";
+      lookup:rankingConfig [
+         # fallback for untyped queries or when no type-specific config exists
+         lookup:rankBy <http://www.ontotext.com/owlim/entity#hasProminence> ;
+      ] ;
+   ] .

@@ -1,0 +1,84 @@
+##################################################
+# Single Index for Entity Lookup and Keyword Search
+#-  adding a field for the type for type-pushdown
+# - adding a single name field (name$label -> rdfs:label, name$prefLabel -> skos:prefLabel) for named entity lookup
+# - indexing of all string literals for all types with any language tags (also without)
+###################################################
+
+PREFIX con: <http://www.ontotext.com/connectors/elasticsearch#>
+PREFIX con-inst: <http://www.ontotext.com/connectors/elasticsearch/instance#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+INSERT DATA {
+  con-inst:lookup-and-keyword con:createConnector '''
+  {
+    "fields": [
+      {
+        "fieldName": "type",
+        "propertyChain": [
+          "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        ],
+        "indexed": true,
+        "stored": false,
+        "facet": false,
+        "analyzed": true,
+        "multivalued": true,
+        "ignoreInvalidValues": true,
+        "fielddata": false,
+        "array": false,
+        "objectFields": []
+      },
+      {
+        "fieldName": "name$label",
+        "propertyChain": [
+          "http://www.w3.org/2000/01/rdf-schema#label"
+        ],
+        "indexed": true,
+        "stored": true,
+        "analyzed": true,
+        "multivalued": true,
+        "ignoreInvalidValues": true,
+        "fielddata": false,
+        "array": false,
+        "objectFields": []
+      },
+      {
+        "fieldName": "name$prefLabel",
+        "propertyChain": [
+          "http://www.w3.org/2004/02/skos/core#prefLabel"
+        ],
+        "indexed": true,
+        "stored": true,
+        "analyzed": true,
+        "multivalued": true,
+        "ignoreInvalidValues": true,
+        "fielddata": false,
+        "array": false,
+        "objectFields": []
+      },
+      {
+        "fieldName": "allLiterals",
+        "propertyChain": [
+          "$literal"
+        ],
+        "datatype": "xsd:string",
+        "facet": false,
+        "ignoreInvalidValues": true,
+      }
+    ],
+    "types": [
+      "$any"
+    ],
+    "readonly": false,
+    "detectFields": false,
+    "importGraph": false,
+    "skipInitialIndexing": false,
+    "elasticsearchNode": "http://elasticsearch:9200",
+    "elasticsearchClusterSniff": false,
+    "manageIndex": true,
+    "manageMapping": true,
+    "bulkUpdateBatchSize": 5000,
+    "bulkUpdateRequestSize": 5242880
+  }
+''' .
+}

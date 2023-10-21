@@ -1,0 +1,100 @@
+version: "2.2"
+services:
+  metaphactory:
+    volumes:
+      - /var/lib/cloud/data/instance-id:/instance_metadata/instance_id.txt:ro
+      - /opt/metaphactory/apps:/apps
+      - /opt/metaphactory/secrets.props:/storage/secrets/secrets.props
+      - /opt/metaphactory/shiro.ini:/runtime-data/config/shiro.ini
+      - ./metaphactory.ttl:/runtime-data/config/repositories/default.ttl:rw
+    networks:
+      - default
+    mem_limit: 2GB
+    mem_reservation: 2GB
+    environment:
+      - SECRET_CREDENTIALS_LOCATION=/storage/secrets/secrets.props
+      - VIRTUAL_PATH=/
+  graphdb:
+    mem_limit: 8G
+    mem_reservation: 8G
+    environment:
+      VIRTUAL_HOST: ${COMPOSE_PROJECT_NAME}.${HOST_NAME}
+      VIRTUAL_PATH: /graphdb/
+      GDB_JAVA_OPTS: >-
+        -Xms6g
+        -Xmx8g
+        -XX:-HeapDumpOnOutOfMemoryError
+        -Dgraphdb.home=/opt/graphdb/home
+        -Dgraphdb.engine.onheap.allocation=false
+        -Dgraphdb.license.file=/etc/graphdb-license
+        -Dgraphdb.workbench.importDirectory=/opt/graphdb/graphdb-import
+    volumes:
+      - /data/db-files/graphdb-home/:/opt/graphdb/home
+      - /data/rdf-files/additional-data:/opt/graphdb/graphdb-import
+      - ./database-config/graphdb-config/license/graphdb.license:/etc/graphdb-license
+    networks:
+      - default
+  graphdb-config:
+    entrypoint: /usr/bin/true
+  elasticsearch:
+    container_name: "${COMPOSE_PROJECT_NAME}-elasticsearch"
+    image: "elasticsearch:7.17.10"
+    restart: unless-stopped
+    mem_limit: 4g
+    mem_reservation: 2g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - "9200:9200" # expose on localhost port 9200 for local development
+    volumes:
+      - "/data/db-files/es-data:/usr/share/elasticsearch/data"
+    networks:
+     - metaphactory_network
+    environment:
+      discovery.type: single-node
+      number_of_replicas: 0
+      number_of_shards: 1
+      MAX_LOCKED_MEMORY: unlimited
+      ES_JAVA_OPTS: >-
+        -Xms2g
+        -Xmx4g
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "10"
+  # some tuning as described in https://blog.opstree.com/2019/10/01/tuning-of-elasticsearch-cluster/
+  # adjust index config to your needs
+  elasticsearch-config:
+    container_name: "${COMPOSE_PROJECT_NAME}-elasticsearch-config"
+    image: "${METAPHACTORY_IMAGE}"
+    depends_on:
+      - elasticsearch
+    networks:
+      - metaphactory_network
+    entrypoint: /bin/bash
+    command: >
+        -c "
+            while ! curl -sSf --head http://elasticsearch:9200/ > /dev/null;
+            do
+                echo \"Waiting for Elasticsearch...\";
+                sleep 1;
+            done;
+            echo \"Elasticsearch started\";
+            # adjust index config to your needs
+            curl -X PUT\\
+              'http://elasticsearch:9200/_all/_settings?preserve_existing=true' \\
+              -d \"{ 'index.refresh_interval' : '300s',  'index.translog.durability' : 'async', 'index.translog.sync_interval' : '30s' }\" ;
+            echo \"Repository configuration applied in GraphDB\";
+        "
+networks:
+  default:
+    external:
+      name: nginx_proxy_network

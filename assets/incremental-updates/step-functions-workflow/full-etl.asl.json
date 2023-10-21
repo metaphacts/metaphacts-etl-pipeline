@@ -1,0 +1,750 @@
+{
+  "Comment": "ETL Pipeline",
+  "StartAt": "Start ETL",
+  "States": {
+    "Start ETL": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:123456789012:function:etl-start:$LATEST",
+        "Payload": {
+          "input.$": "$",
+          "taskToken.$": "$$.Task.Token"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "SNS Manifest Created"
+    },
+    "SNS Manifest Created": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:notifications",
+        "Message": {
+          "Message": "Manifest file was generated"
+        }
+      },
+      "Next": "Start RDF Conversion",
+      "ResultPath": "$.SNS"
+    },
+    "Start RDF Conversion": {
+      "Type": "Task",
+      "Next": "DescribeJob",
+      "Parameters": {
+        "AccountId": "123456789012",
+        "ClientRequestToken.$": "States.UUID()",
+        "Priority": 2,
+        "Operation": {
+          "LambdaInvoke": {
+            "FunctionArn": "arn:aws:lambda:us-east-1:123456789012:function:JsonToRdf"
+          }
+        },
+        "Report": {
+          "Bucket.$": "States.Format('arn:aws:s3:::{}', $.ManifestBucket)",
+          "Format": "Report_CSV_20180820",
+          "Enabled": true,
+          "Prefix": "reports",
+          "ReportScope": "AllTasks"
+        },
+        "RoleArn": "arn:aws:iam::123456789012:role/JSONToRdfLambda",
+        "Manifest": {
+          "Spec": {
+            "Format": "S3BatchOperations_CSV_20180820",
+            "Fields": [
+              "Bucket",
+              "Key"
+            ]
+          },
+          "Location": {
+            "ObjectArn.$": "States.Format('arn:aws:s3:::{}/{}', $.ManifestBucket,$.ManifestKey)",
+            "ETag.$": "$.ManifestEtag"
+          }
+        },
+        "ConfirmationRequired": false
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3control:createJob",
+      "ResultPath": "$.CreateJob"
+    },
+    "DescribeJob": {
+      "Type": "Task",
+      "Next": "Check RDF Conversion",
+      "Parameters": {
+        "AccountId": "123456789012",
+        "JobId.$": "$.CreateJob.JobId"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3control:describeJob",
+      "ResultPath": "$.DescribeJob",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "Comment": "retry"
+        }
+      ]
+    },
+    "Check RDF Conversion": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.DescribeJob.Job.Status",
+          "StringEquals": "Complete",
+          "Next": "SNS RDF Conversion Finished"
+        },
+        {
+          "Or": [
+            {
+              "Variable": "$.DescribeJob.Job.Status",
+              "StringEquals": "Active"
+            },
+            {
+              "Variable": "$.DescribeJob.Job.Status",
+              "StringEquals": "New"
+            },
+            {
+              "Variable": "$.DescribeJob.Job.Status",
+              "StringEquals": "Completing"
+            }
+          ],
+          "Next": "Wait RDF Conversion"
+        }
+      ],
+      "Default": "RDF Conversion error"
+    },
+    "SNS RDF Conversion Finished": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:notifications",
+        "Message": {
+          "Message": "RDF Conversion Finished"
+        }
+      },
+      "Next": "RDF conversion finished",
+      "ResultPath": "$.SNS"
+    },
+    "Wait RDF Conversion": {
+      "Type": "Wait",
+      "Seconds": 60,
+      "Next": "DescribeJob"
+    },
+    "RDF conversion finished": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "Type of operation?"
+    },
+    "Type of operation?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.Mode",
+          "StringEquals": "incremental-updates",
+          "Next": "SNS Start Incremental Updates Ingestion"
+        },
+        {
+          "Variable": "$.Mode",
+          "StringEquals": "cold-start",
+          "Next": "Run 2-runs Conversion with lookups"
+        }
+      ],
+      "Default": "Unexpected operation mode"
+    },
+    "SNS Start Incremental Updates Ingestion": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:notifications",
+        "Message": {
+          "Message": "Start incremental updates ingestion in the EC2 instance."
+        }
+      },
+      "Next": "Run Conversion Without lookups",
+      "ResultPath": "$.SNS"
+    },
+    "Run Conversion Without lookups": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "Run incremental updates ingestion"
+    },
+    "Run incremental updates ingestion": {
+      "Type": "Task",
+      "Parameters": {
+        "DocumentName": "AWS-RunShellScript",
+        "DocumentVersion": "1",
+        "Targets": [
+          {
+            "Key": "InstanceIds",
+            "Values": [
+              "i-0f9327af1b79390d5"
+            ]
+          }
+        ],
+        "Parameters": {
+          "commands.$": "States.Array(States.Format('export RDF_BUCKET={}', $.OutputBucket),States.Format('sudo -u ec2-user ./bash/incremental-updates.sh') )",
+          "executionTimeout": [
+            "259200"
+          ],
+          "workingDirectory": [
+            "/home/ec2-user/etl/"
+          ]
+        },
+        "OutputS3Region": "us-east-1",
+        "MaxErrors": "0",
+        "MaxConcurrency": "50",
+        "TimeoutSeconds": 259200
+      },
+      "Resource": "arn:aws:states:::aws-sdk:ssm:sendCommand",
+      "ResultPath": "$.SendCommand",
+      "Next": "Check incremental updates ingestion"
+    },
+    "Check incremental updates ingestion": {
+      "Type": "Task",
+      "Parameters": {
+        "CommandId.$": "$.SendCommand.Command.CommandId",
+        "InstanceId.$": "$.SendCommand.Command.Targets[0].Values[0]"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:ssm:getCommandInvocation",
+      "ResultPath": "$.GetCommandInvocation",
+      "Next": "Is incremental updates running?",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3
+        }
+      ]
+    },
+    "Is incremental updates running?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.GetCommandInvocation.Status",
+          "StringEquals": "Success",
+          "Next": "Incremental updates finished"
+        },
+        {
+          "Variable": "$.GetCommandInvocation.Status",
+          "StringEquals": "InProgress",
+          "Next": "Wait incremental updates"
+        }
+      ],
+      "Default": "Incremental updates error"
+    },
+    "Incremental updates error": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "SNS Error"
+    },
+    "Incremental updates finished": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "Postprocessing"
+    },
+    "Postprocessing": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "SNS Start Post processing"
+    },
+    "SNS Start Post processing": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:notifications",
+        "Message": {
+          "Message": "Start post processing."
+        }
+      },
+      "Next": "Run post processing",
+      "ResultPath": "$.SNS"
+    },
+    "Run post processing": {
+      "Type": "Task",
+      "Parameters": {
+        "DocumentName": "AWS-RunShellScript",
+        "DocumentVersion": "1",
+        "Targets": [
+          {
+            "Key": "InstanceIds",
+            "Values": [
+              "i-0f9327af1b79390d5"
+            ]
+          }
+        ],
+        "Parameters": {
+          "commands.$": "States.Array(States.Format('export RDF_BUCKET={}', $.OutputBucket),States.Format('sudo -u ec2-user ./bash/postprocessing.sh') )",
+          "executionTimeout": [
+            "259200"
+          ],
+          "workingDirectory": [
+            "/home/ec2-user/etl/"
+          ]
+        },
+        "OutputS3Region": "us-east-1",
+        "MaxErrors": "0",
+        "MaxConcurrency": "50",
+        "TimeoutSeconds": 259200
+      },
+      "Resource": "arn:aws:states:::aws-sdk:ssm:sendCommand",
+      "ResultPath": "$.SendCommand",
+      "Next": "Check post processing"
+    },
+    "Check post processing": {
+      "Type": "Task",
+      "Parameters": {
+        "CommandId.$": "$.SendCommand.Command.CommandId",
+        "InstanceId.$": "$.SendCommand.Command.Targets[0].Values[0]"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:ssm:getCommandInvocation",
+      "ResultPath": "$.GetCommandInvocation",
+      "Next": "Is postprocessing running?",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3
+        }
+      ]
+    },
+    "Is postprocessing running?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.GetCommandInvocation.Status",
+          "StringEquals": "Success",
+          "Next": "Postprocessing finished"
+        },
+        {
+          "Variable": "$.GetCommandInvocation.Status",
+          "StringEquals": "InProgress",
+          "Next": "Wait postprocessing"
+        }
+      ],
+      "Default": "Postprocessing error"
+    },
+    "Postprocessing finished": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "SNS Start Deployment"
+    },
+    "SNS Start Deployment": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:notifications",
+        "Message": {
+          "Message": "Start deployment."
+        }
+      },
+      "Next": "Run deploy",
+      "ResultPath": "$.SNS"
+    },
+    "Run deploy": {
+      "Type": "Task",
+      "Parameters": {
+        "DocumentName": "AWS-RunShellScript",
+        "DocumentVersion": "1",
+        "Targets": [
+          {
+            "Key": "InstanceIds",
+            "Values": [
+              "i-0f9327af1b79390d5"
+            ]
+          }
+        ],
+        "Parameters": {
+          "commands": [
+            "sudo -u ec2-user ./bash/deploy.sh"
+          ],
+          "executionTimeout": [
+            "259200"
+          ],
+          "workingDirectory": [
+            "/home/ec2-user/etl/"
+          ]
+        },
+        "OutputS3Region": "us-east-1",
+        "MaxErrors": "0",
+        "MaxConcurrency": "50",
+        "TimeoutSeconds": 259200
+      },
+      "Resource": "arn:aws:states:::aws-sdk:ssm:sendCommand",
+      "ResultPath": "$.SendCommand",
+      "Next": "Check deploy"
+    },
+    "Check deploy": {
+      "Type": "Task",
+      "Parameters": {
+        "CommandId.$": "$.SendCommand.Command.CommandId",
+        "InstanceId.$": "$.SendCommand.Command.Targets[0].Values[0]"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:ssm:getCommandInvocation",
+      "ResultPath": "$.GetCommandInvocation",
+      "Next": "Choice",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3
+        }
+      ]
+    },
+    "Choice": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.GetCommandInvocation.Status",
+          "StringEquals": "Success",
+          "Next": "Deploy finished"
+        },
+        {
+          "Variable": "$.GetCommandInvocation.Status",
+          "StringEquals": "InProgress",
+          "Next": "Wait deploy"
+        }
+      ],
+      "Default": "Deploy error"
+    },
+    "Deploy finished": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "SNS ETL Finished"
+    },
+    "SNS ETL Finished": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:notifications",
+        "Message": {
+          "Message": "Deployment finished."
+        }
+      },
+      "ResultPath": "$.SNS",
+      "End": true
+    },
+    "Deploy error": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "SNS Error"
+    },
+    "SNS Error": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:notifications",
+        "Message.$": "$"
+      },
+      "ResultPath": "$.SNS",
+      "End": true
+    },
+    "Postprocessing error": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "SNS Error"
+    },
+    "Unexpected operation mode": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "SNS Error"
+    },
+    "Run 2-runs Conversion with lookups": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "Get RDF Conversion Configuration"
+    },
+    "Get RDF Conversion Configuration": {
+      "Type": "Task",
+      "Next": "Update RDF Conversion Configuration",
+      "Parameters": {
+        "FunctionName": "JsonToRdf"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:lambda:getFunctionConfiguration",
+      "ResultPath": "$.GetFunctionConfiguration"
+    },
+    "Update RDF Conversion Configuration": {
+      "Type": "Task",
+      "Next": "Start RDF Conversion Second Run",
+      "Parameters": {
+        "FunctionName": "JsonToRdf",
+        "Environment": {
+          "Variables": {
+            "UPLOAD_BUCKET.$": "$.GetFunctionConfiguration.Environment.Variables.UPLOAD_BUCKET",
+            "REDIS_SERVER.$": "$.GetFunctionConfiguration.Environment.Variables.REDIS_SERVER",
+            "REDIS_PASSWORD.$": "$.GetFunctionConfiguration.Environment.Variables.REDIS_PASSWORD",
+            "PROCESS_DETECT_LASTUPDATE": "false",
+            "PROCESS_COLDSTART": "true"
+          }
+        }
+      },
+      "Resource": "arn:aws:states:::aws-sdk:lambda:updateFunctionConfiguration",
+      "ResultPath": "$.UpdateFunctionConfiguration"
+    },
+    "Start RDF Conversion Second Run": {
+      "Type": "Task",
+      "Next": "DescribeJob Second Run",
+      "Parameters": {
+        "AccountId": "123456789012",
+        "ClientRequestToken.$": "States.UUID()",
+        "Priority": 2,
+        "Operation": {
+          "LambdaInvoke": {
+            "FunctionArn": "arn:aws:lambda:us-east-1:123456789012:function:JsonToRdf"
+          }
+        },
+        "Report": {
+          "Bucket.$": "States.Format('arn:aws:s3:::{}', $.ManifestBucket)",
+          "Format": "Report_CSV_20180820",
+          "Enabled": true,
+          "Prefix": "reports",
+          "ReportScope": "AllTasks"
+        },
+        "RoleArn": "arn:aws:iam::123456789012:role/JSONToRdfLambda",
+        "Manifest": {
+          "Spec": {
+            "Format": "S3BatchOperations_CSV_20180820",
+            "Fields": [
+              "Bucket",
+              "Key"
+            ]
+          },
+          "Location": {
+            "ObjectArn.$": "States.Format('arn:aws:s3:::{}/{}', $.ManifestBucket,$.ManifestKey)",
+            "ETag.$": "$.ManifestEtag"
+          }
+        },
+        "ConfirmationRequired": false
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3control:createJob",
+      "ResultPath": "$.CreateJob"
+    },
+    "DescribeJob Second Run": {
+      "Type": "Task",
+      "Next": "Is Second Execution Running?",
+      "Parameters": {
+        "AccountId": "123456789012",
+        "JobId.$": "$.CreateJob.JobId"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3control:describeJob",
+      "ResultPath": "$.DescribeJob",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3
+        }
+      ]
+    },
+    "Is Second Execution Running?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.DescribeJob.Job.Status",
+          "StringEquals": "Complete",
+          "Next": "SNS RDF Conversion Second Run"
+        },
+        {
+          "Or": [
+            {
+              "Variable": "$.DescribeJob.Job.Status",
+              "StringEquals": "Active"
+            },
+            {
+              "Variable": "$.DescribeJob.Job.Status",
+              "StringEquals": "New"
+            },
+            {
+              "Variable": "$.DescribeJob.Job.Status",
+              "StringEquals": "Completing"
+            }
+          ],
+          "Next": "Wait second run"
+        }
+      ],
+      "Default": "Second run error"
+    },
+    "SNS RDF Conversion Second Run": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:notifications",
+        "Message": {
+          "Message": "RDF Conversion (Second run) Finished"
+        }
+      },
+      "Next": "Move processed manifest",
+      "ResultPath": "$.SNS"
+    },
+    "Move processed manifest": {
+      "Type": "Task",
+      "Next": "Run cold start ingestion",
+      "Parameters": {
+        "Bucket.$": "$.ManifestBucket",
+        "CopySource.$": "States.Format('{}/{}', $.ManifestBucket,$.ManifestKey)",
+        "Key.$": "$.ProcessedKey"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3:copyObject",
+      "ResultPath": "$.CopyObject"
+    },
+    "Wait second run": {
+      "Type": "Wait",
+      "Seconds": 60,
+      "Next": "DescribeJob Second Run"
+    },
+    "Second run error": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "SNS Error"
+    },
+    "Run cold start ingestion": {
+      "Type": "Task",
+      "Parameters": {
+        "DocumentName": "AWS-RunShellScript",
+        "DocumentVersion": "1",
+        "Targets": [
+          {
+            "Key": "InstanceIds",
+            "Values": [
+              "i-0f9327af1b79390d5"
+            ]
+          }
+        ],
+        "Parameters": {
+          "commands.$": "States.Array(States.Format('export RDF_BUCKET={}', $.OutputBucket),States.Format('sudo -u ec2-user ./bash/cold-start.sh') )",
+          "executionTimeout": [
+            "259200"
+          ],
+          "workingDirectory": [
+            "/home/ec2-user/etl/"
+          ]
+        },
+        "OutputS3Region": "us-east-1",
+        "MaxErrors": "0",
+        "MaxConcurrency": "50",
+        "TimeoutSeconds": 259200
+      },
+      "Resource": "arn:aws:states:::aws-sdk:ssm:sendCommand",
+      "ResultPath": "$.SendCommand",
+      "Next": "Check cold start ingestion"
+    },
+    "Check cold start ingestion": {
+      "Type": "Task",
+      "Parameters": {
+        "CommandId.$": "$.SendCommand.Command.CommandId",
+        "InstanceId.$": "$.SendCommand.Command.Targets[0].Values[0]"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:ssm:getCommandInvocation",
+      "ResultPath": "$.GetCommandInvocation",
+      "Next": "Is cold start ingestion running?",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3
+        }
+      ]
+    },
+    "Is cold start ingestion running?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.GetCommandInvocation.Status",
+          "StringEquals": "Success",
+          "Next": "Mark bucket as ingested"
+        },
+        {
+          "Variable": "$.GetCommandInvocation.Status",
+          "StringEquals": "InProgress",
+          "Next": "Wait cold start ingestion"
+        }
+      ],
+      "Default": "Cold start ingestion error"
+    },
+    "Mark bucket as ingested": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke.waitForTaskToken",
+      "OutputPath": "$.Payload",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:123456789012:function:mark-cold-start:$LATEST",
+        "Payload": {
+          "input.$": "$",
+          "taskToken.$": "$$.Task.Token"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 6,
+          "BackoffRate": 2
+        }
+      ],
+      "Next": "Postprocessing",
+      "ResultPath": "$.Lambda"
+    },
+    "Wait cold start ingestion": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "Check cold start ingestion"
+    },
+    "Cold start ingestion error": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "SNS Error"
+    },
+    "Wait postprocessing": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "Check post processing"
+    },
+    "Wait incremental updates": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "Check incremental updates ingestion"
+    },
+    "Wait deploy": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "Check deploy"
+    },
+    "RDF Conversion error": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "SNS Error"
+    }
+  }
+}

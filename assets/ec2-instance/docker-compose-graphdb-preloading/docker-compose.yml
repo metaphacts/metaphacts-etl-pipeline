@@ -1,0 +1,29 @@
+version: "2"
+services:
+  graphdb:
+    container_name: graphdb-preload
+    image: ontotext/graphdb:10.4.1
+    mem_limit: 8g
+    mem_reservation: 8g
+
+    entrypoint: [ "/opt/graphdb/dist/bin/importrdf", "preload", "--chunk", "20m", "--force", "--recursive", "--parsing-tasks", "24", "--recovery-point-interval", "3600", "--id", "metaphactory", "/opt/graphdb/graphdb-import/" ]
+
+    environment:
+      GDB_JAVA_OPTS: >-
+        -Xms6g
+        -Xmx8g
+        -Dgraphdb.home=/opt/graphdb/home
+        -Dgraphdb.license.file=/etc/graphdb-license
+        -Dgraphdb.workbench.importDirectory=/opt/graphdb/graphdb-import
+        -Dorg.eclipse.rdf4j.rio.fail_on_unknown_datatypes=false
+        -Dorg.eclipse.rdf4j.rio.verify_datatype_values=false
+    volumes:
+      - /data/db-files/tmp:/tmp
+      - /data/db-files/graphdb-home:/opt/graphdb/home
+      - /data/rdf-files:/opt/graphdb/graphdb-import
+      - ./graphdb.license:/etc/graphdb-license
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "10"
