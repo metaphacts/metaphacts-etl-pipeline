@@ -5,7 +5,8 @@ import { Bucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
 import { Source, BucketDeployment } from 'aws-cdk-lib/aws-s3-deployment';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import { IngestionInstance } from './ingestion-instance';
+import { ETLInstance } from './ingestion-instance';
+import { LoggingFormat } from 'aws-cdk-lib/aws-appmesh';
 
 export class EtlPipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -55,7 +56,14 @@ export class EtlPipelineStack extends cdk.Stack {
     });
 
 
-    const ingestionInstance = new IngestionInstance(this, 'ingestion', {
+    const etlInstanceProps = {
+      logLevel: process.env.LOG_LEVEL || 'INFO',
+      sshPubKey: process.env.SSH_PUB_KEY || ' ',
+      instanceType : process.env.INSTANCE_TYPE || 't3.xlarge',
+    };
+
+    const etlInstance = new ETLInstance(this, 'ingestion', {
+      ...etlInstanceProps,
       assetBucket: assetBucket
     });
   }
