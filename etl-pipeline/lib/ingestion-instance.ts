@@ -61,6 +61,7 @@ export class ETLInstance extends Construct {
       managedPolicies: [
         ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'),
         ManagedPolicy.fromAwsManagedPolicyName('CloudWatchAgentServerPolicy'),
+        ManagedPolicy.fromAwsManagedPolicyName('EC2InstanceConnect'),
       ],
     });
 
@@ -97,15 +98,17 @@ export class ETLInstance extends Construct {
       props.assetBucket.bucketName +
         '/ec2-instance /home/ec2-user/ec2-instance --recursive',
     );
+    
+    const machineImage = MachineImage.latestAmazonLinux2023({
+        cachedInContext: false,
+        cpuType: cpuType,
+      });
 
     // Create the EC2 instance
     const etlInstance = new Instance(this, 'Instance', {
       vpc: vpc,
       instanceType: new InstanceType(props.instanceType),
-      machineImage: MachineImage.latestAmazonLinux2023({
-        cachedInContext: false,
-        cpuType: cpuType,
-      }),
+      machineImage: machineImage,
       userData: userData,
       securityGroup: ec2InstanceSecurityGroup,
       init: CloudFormationInit.fromConfigSets({

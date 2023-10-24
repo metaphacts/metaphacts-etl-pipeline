@@ -1,11 +1,12 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { RemovalPolicy, Duration, Stack } from 'aws-cdk-lib';
+import { RemovalPolicy, Duration, Stack, CfnParameter } from 'aws-cdk-lib';
 import { Bucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
 import { Source, BucketDeployment } from 'aws-cdk-lib/aws-s3-deployment';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { ETLInstance } from './ingestion-instance';
+import { RDFConversionLambda } from './rdf-conversion-lambda';
 import { LoggingFormat } from 'aws-cdk-lib/aws-appmesh';
 
 export class EtlPipelineStack extends cdk.Stack {
@@ -56,10 +57,33 @@ export class EtlPipelineStack extends cdk.Stack {
     });
 
 
+    // RDF conversion lambda
+    /*
+    const rdfConversionLambda = new RDFConversionLambda(this, 'RDFConversionLambda' {
+
+    });
+    */
+
+    const logLevel = new CfnParameter(this, 'logLevel', {
+      default: process.env.LOG_LEVEL || 'INFO'
+    });
+    const sshPubKey = new CfnParameter(this, 'sshPubKey', {
+      default: process.env.SSH_PUB_KEY || undefined
+    });
+    const instanceType = new CfnParameter(this, 'instanceType', {
+      default: process.env.INSTANCE_TYPE || 't3.xlarge'
+    });
+
+    console.log('Environment:');
+    //console.log(process.env);
+    console.log('log level:      ' + logLevel.valueAsString);
+    console.log('SSH public key: ' + sshPubKey.valueAsString);
+    console.log('instance type:  ' + instanceType.valueAsString);
+    
     const etlInstanceProps = {
-      logLevel: process.env.LOG_LEVEL || 'INFO',
-      sshPubKey: process.env.SSH_PUB_KEY || ' ',
-      instanceType : process.env.INSTANCE_TYPE || 't3.xlarge',
+      logLevel: logLevel.valueAsString,
+      sshPubKey: sshPubKey.valueAsString || ' ',
+      instanceType : instanceType.valueAsString,
     };
 
     const etlInstance = new ETLInstance(this, 'ingestion', {

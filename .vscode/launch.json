@@ -1,0 +1,70 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+
+      {
+      "type": "node",
+      "request": "launch",
+      "name": "CDK Deploy",
+      "skipFiles": [
+          "<node_internals>/**"
+      ],
+      "cwd": "${workspaceFolder}/etl-pipeline",
+      "runtimeArgs": [
+          "-r", "./node_modules/ts-node/register/transpile-only"
+      ],
+      "args": [
+          "${workspaceFolder}/etl-pipeline/bin/etl-pipeline.ts",
+          "deploy"
+      ]
+      },
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "CDK Synth",
+        "skipFiles": [
+            "<node_internals>/**"
+        ],
+        "cwd": "${workspaceFolder}/etl-pipeline",
+        "runtimeArgs": [
+            "-r", "./node_modules/ts-node/register/transpile-only"
+        ],
+        "args": [
+            "${workspaceFolder}/etl-pipeline/bin/etl-pipeline.ts",
+            "synth"
+        ]
+      },
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "CDK Diff",
+        "skipFiles": [
+            "<node_internals>/**"
+        ],
+        "cwd": "${workspaceFolder}/etl-pipeline",
+        "runtimeArgs": [
+            "-r", "./node_modules/ts-node/register/transpile-only"
+        ],
+        "args": [
+            "${workspaceFolder}/etl-pipeline/bin/etl-pipeline.ts",
+            "destroy"
+        ]
+      },
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "CDK Destroy",
+        "skipFiles": [
+            "<node_internals>/**"
+        ],
+        "cwd": "${workspaceFolder}/etl-pipeline",
+        "runtimeArgs": [
+            "-r", "./node_modules/ts-node/register/transpile-only"
+        ],
+        "args": [
+            "${workspaceFolder}/etl-pipeline/bin/etl-pipeline.ts",
+            "destroy"
+        ]
+      }
+  ]
+}
