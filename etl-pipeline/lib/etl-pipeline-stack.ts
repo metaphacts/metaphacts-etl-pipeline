@@ -7,7 +7,6 @@ import * as sns from 'aws-cdk-lib/aws-sns';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { ETLInstance } from './ingestion-instance';
 import { RDFConversionLambda } from './rdf-conversion-lambda';
-import { LoggingFormat } from 'aws-cdk-lib/aws-appmesh';
 import { IngestionWorkflow } from './ingestion-workflow';
 
 export class EtlPipelineStack extends cdk.Stack {
@@ -25,12 +24,23 @@ export class EtlPipelineStack extends cdk.Stack {
       autoDeleteObjects: true,
     });
     
+    // deploy files from ../source-files into the bucket
     new BucketDeployment(this, 'assetBucketDeployment', {
       sources: [Source.asset('../assets')],
       destinationBucket: assetBucket,
       retainOnDelete: false,
       include: ['ec2-instance/**'],
-      exclude: ['**/node_modules/**', '**/dist/**'],
+      exclude: ['**/node_modules/**', '**/dist/**', '.DS_Store', '.gitignore', '.gitkeep'],
+      memoryLimit: 512,
+    });
+    // deploy some files from ../user-files into the bucket
+    new BucketDeployment(this, 'assetBucketDeploymentUserFiles', {
+      sources: [Source.asset('../user-files')],
+      destinationBucket: assetBucket,
+      destinationKeyPrefix: 'user-files/',
+      retainOnDelete: false,
+      include: ['graphdb.license'],
+      exclude: ['README*', '.gitignore', '.gitkeep'],
       memoryLimit: 512,
     });
 
@@ -48,12 +58,13 @@ export class EtlPipelineStack extends cdk.Stack {
       autoDeleteObjects: true,
     });
     
+    // deploy files from ../mappings into the bucket
     new BucketDeployment(this, 'mappingsBucketDeployment', {
       sources: [Source.asset('../mappings')],
       destinationBucket: mappingsBucket,
       retainOnDelete: false,
       include: ['**'],
-      exclude: ['.gitignore'],
+      exclude: ['.gitignore', '.gitkeep'],
       memoryLimit: 512,
     });
 
@@ -64,18 +75,21 @@ export class EtlPipelineStack extends cdk.Stack {
       autoDeleteObjects: true,
     });
 
+    // deploy files from ../source-files into the bucket
+    new BucketDeployment(this, 'sourceBucketDeployment', {
+      sources: [Source.asset('../source-files')],
+      destinationBucket: sourceBucket,
+      retainOnDelete: false,
+      include: ['**'],
+      exclude: ['.gitignore', '.gitkeep'],
+      memoryLimit: 512,
+    });
+
     const outputBucket = new Bucket(this, 'outputBucket', {
       publicReadAccess: false,
       removalPolicy: RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       objectOwnership: ObjectOwnership.BUCKET_OWNER_PREFERRED,
       autoDeleteObjects: false,
-    });
-
-    // hello Lambda
-    const hello = new lambda.Function(this, 'HelloLambda', {
-      runtime: lambda.Runtime.NODEJS_16_X,    // execution environment
-      code: lambda.Code.fromAsset('hello-lambda'),  // code loaded from "hello-lambda" directory
-      handler: 'hello.handler'                // file is "hello", function is "handler"
     });
 
     // RDF conversion lambda

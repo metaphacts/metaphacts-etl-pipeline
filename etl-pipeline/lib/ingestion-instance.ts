@@ -93,7 +93,6 @@ export class ETLInstance extends Construct {
       'yum install -y amazon-cloudwatch-agent nodejs python3-pip zip unzip docker yarn',
       'sudo systemctl enable docker',
       'sudo systemctl start docker',
-      'mkdir -p /home/ec2-user/sample',
       'aws s3 cp s3://' +
       props.assetBucket.bucketName +
         '/ec2-instance /home/ec2-user/ec2-instance --recursive',

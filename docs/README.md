@@ -21,14 +21,10 @@ The ETL pipeline has the following features:
 
 ## Setup and Operation
 
-See [ETL Pipeline Setup](docs/Setup.md) for how to set up and run the pipeline.
+See [ETL Pipeline Setup](Setup.md) for how to set up and run the pipeline.
 
 ## Architecture
 
 The following diagram shows the architecture of the ETL pipeline:
 
-<img src="docs/data-ingestion-architecture.png">
-
-## Copyright
-
-All content in this repository is (c) 2023 by metaphacts.
+<img src="data-ingestion-architecture.png">

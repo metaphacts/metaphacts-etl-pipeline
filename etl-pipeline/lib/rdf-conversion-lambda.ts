@@ -56,11 +56,12 @@ export class RDFConversionLambda extends Construct {
           command: [
             "/bin/bash",
             "-c",
-            "./gradlew clean build"
+            "./gradlew build"
               + " && cp build/function.zip /asset-output/"
           ]
         }
       }),  // code loaded from "lambda-json-to-rdf" directory
+      // TODO refactor package name
       handler: 'com.metaphacts.ds.tm.lambda.ConvertJSONLToRDFLambda::handleRequest',
       memorySize: 1024,
       timeout: cdk.Duration.minutes(15)
