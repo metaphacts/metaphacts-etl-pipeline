@@ -153,11 +153,6 @@ export class ETLInstance extends Construct {
     // Add the Security Group to the EC2 instance
     etlInstance.addSecurityGroup(ec2InstanceSecurityGroup);
 
-    // SSM Command to start a session
-    new CfnOutput(this, 'ssmCommand', {
-      value: `aws ssm start-session --target ${etlInstance.instanceId}`,
-    });
-
     // SSH Command to connect to the EC2 Instance
     new CfnOutput(this, 'sshCommand', {
       value: `ssh ec2-user@${etlInstance.instancePublicDnsName}`,

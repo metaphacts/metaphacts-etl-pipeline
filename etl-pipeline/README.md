@@ -10,6 +10,7 @@ The ETL Pipeline is implemented using an AWS CloudFormation stack defined using 
 * AWS account
 * AWS CLI installed and configured
 * AWS CDK (TypeScript) installed
+* Docker for running and building local images
 
 ### AWS Account and Credentials
 

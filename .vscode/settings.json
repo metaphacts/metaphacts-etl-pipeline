@@ -1,0 +1,9 @@
+{
+  "cSpell.words": [
+    "metaphacts"
+  ],
+  "markdownlint.config": {
+    "MD033": { "allowed_elements": ["img"] },
+  },
+  "java.configuration.updateBuildConfiguration": "interactive"
+}

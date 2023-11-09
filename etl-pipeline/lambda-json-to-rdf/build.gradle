@@ -1,0 +1,171 @@
+plugins {
+    id 'java'
+    id 'io.quarkus'
+    id 'eclipse'
+}
+
+ext {
+    RDF4J_VERSION = '4.3.6'
+    CARML_VERSION = '0.4.9'
+    JEDIS_VERSION = '2.8.2'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:quarkus-amazon-services-bom:${quarkusPlatformVersion}")
+    implementation 'io.quarkus:quarkus-arc'
+    implementation 'io.quarkus:quarkus-amazon-lambda'
+    implementation 'io.quarkus:quarkus-jackson:2.16.4.Final'
+    implementation 'io.quarkiverse.amazonservices:quarkus-amazon-s3'
+    implementation 'software.amazon.awssdk:url-connection-client'
+    
+    // RDF4J related
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-rio-api', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-rio-binary', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-rio-jsonld', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-rio-n3', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-rio-nquads', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-rio-ntriples', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-rio-rdfjson', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-rio-rdfxml', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-rio-trig', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-rio-trix', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-rio-turtle', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-rio-languages', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-rio-datatypes', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-model-api', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-model-vocabulary', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-model', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-repository-api', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-query', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-queryalgebra-model', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-queryparser-api', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-queryparser-sparql', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-queryresultio-api', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-queryresultio-sparqljson', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-queryresultio-text', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-queryresultio-binary', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-queryresultio-sparqlxml', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-common-exception', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-common-io', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-common-transaction', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-common-iterator', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-common-util', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-common-text', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-common-xml', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-http-client', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-http-protocol', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-repository-sparql', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-repository-manager', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-repository-sail', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-repository-event', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-shacl', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-repository-http', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-sail-api', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-sail-base', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-sail-model', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-sail-inferencer', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-sail-nativerdf', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-sail-memory', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-queryrender', version: RDF4J_VERSION, transitive: false
+    implementation group: 'org.eclipse.rdf4j', name: 'rdf4j-queryalgebra-evaluation', version: RDF4J_VERSION, transitive: false
+
+    // jedis related
+    implementation group: 'redis.clients', name: 'jedis', version: JEDIS_VERSION
+
+    implementation group: 'com.opencsv', name: 'opencsv', version: '5.6'
+    constraints {
+        implementation('org.apache.commons:commons-text:1.10.0') {
+            because 'previous 1.9 version has a security vulnerability'
+        }
+    }
+    
+    implementation group: 'io.carml', name: 'carml-engine', version: CARML_VERSION, transitive: false
+    implementation group: 'io.carml', name: 'carml-commons', version: CARML_VERSION, transitive: false
+    implementation group: 'io.carml', name: 'carml-model', version: CARML_VERSION, transitive: false
+    implementation group: 'io.carml', name: 'carml-join-storage', version: CARML_VERSION, transitive: false
+    implementation group: 'io.carml', name: 'carml-rdf-mapper', version: CARML_VERSION, transitive: false
+    implementation group: 'io.carml', name: 'carml-logical-source-resolver', version: CARML_VERSION, transitive: false
+    implementation group: 'io.carml', name: 'carml-logical-source-resolver-xpath', version: CARML_VERSION, transitive: false
+    implementation group: 'io.carml', name: 'carml-logical-source-resolver-csv', version: CARML_VERSION, transitive: false
+    implementation group: 'io.carml', name: 'carml-logical-source-resolver-jsonpath', version: CARML_VERSION, transitive: false
+    // CARML dependencies
+    implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.5.3', transitive: false        // JSON
+    implementation group: 'org.reactivestreams', name: 'reactive-streams', version: '1.0.4', transitive: false  // JSON
+    implementation group: 'com.google.guava', name: 'guava', version: '31.1-jre', transitive: false             // JSON
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.10.1', transitive: false            // JSON
+    
+    implementation group: 'net.sf.saxon', name: 'Saxon-HE', version: '12.2', transitive: false                  // XML/Xpath
+    implementation group: 'org.xmlresolver', name: 'xmlresolver', version: '5.1.2', transitive: false           // XML/Xpath
+    implementation group: 'in.jlibs', name: 'jlibs-xmldog', version: '3.0.1', transitive: false                 // XML/Xpath
+    implementation group: 'in.jlibs', name: 'jlibs-xml', version: '3.0.1', transitive: false                    // XML/Xpath
+    implementation group: 'in.jlibs', name: 'jlibs-core', version: '3.0.1', transitive: false                   // XML/Xpath
+    implementation group: 'in.jlibs', name: 'jlibs-visitor', version: '3.0.1', transitive: false                // XML/Xpath
+    implementation group: 'jaxen', name: 'jaxen', version: '1.1.1', transitive: false
+    
+    implementation group: 'com.univocity', name: 'univocity-parsers', version: '2.9.1', transitive: false       // CSV
+
+    // jsurfer for JSON processing
+    // note: when experiencing issues with bundled ANTLR version, see previous commits
+    // for workaround with a shaded jsurfer
+    implementation group: 'com.github.jsurfer', name: 'jsurfer-all', version: '1.6.4'
+    implementation group: 'com.github.jsurfer', name: 'jsurfer-core', version: '1.6.4'
+
+    implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.7.0', transitive: false         // JSON
+    implementation group: 'net.minidev', name: 'json-smart', version: '2.4.7', transitive: false                // JSON
+    implementation group: 'net.minidev', name: 'accessors-smart', version: '2.4.7', transitive: false           // JSON
+    implementation group: 'org.ow2.asm', name: 'asm', version: '9.1', transitive: false                         // JSON
+    implementation group: 'com.univocity', name: 'univocity-parsers', version: '2.9.1', transitive: false       // CSV
+    
+
+
+    // Apache Commons
+    implementation group: 'commons-io', name: 'commons-io', version: '2.11.0'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
+    implementation group: 'commons-codec', name: 'commons-codec', version: '1.15'
+    
+    testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'io.rest-assured:rest-assured'
+}
+
+group 'com.metaphacts.ds.tm'
+version '1.0.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+test {
+    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+}
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+eclipse {
+    classpath {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}
+
+task copyMappings(type: Copy) {
+    from('../../mappings') {
+        include '**/*.ttl'
+    }
+    into 'src/main/zip.jvm/mappings'
+}
+
+// TODO do not depend on built-in mappings, but rather on configured location in S3 bucket
+//compileJava.dependsOn(copyMappings)
