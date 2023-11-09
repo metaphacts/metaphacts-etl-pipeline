@@ -8,6 +8,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { ETLInstance } from './ingestion-instance';
 import { RDFConversionLambda } from './rdf-conversion-lambda';
 import { LoggingFormat } from 'aws-cdk-lib/aws-appmesh';
+import { IngestionWorkflow } from './ingestion-workflow';
 
 export class EtlPipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -111,6 +112,18 @@ export class EtlPipelineStack extends cdk.Stack {
     const etlInstance = new ETLInstance(this, 'ingestion', {
       ...etlInstanceProps,
       assetBucket: assetBucket
+    });
+
+    // Ingestion workflow
+    const ingestionWorkflow = new IngestionWorkflow(this, 'IngestionWorkflow', {
+      /** bucket containing source files */
+      sourceBucket: sourceBucket,
+      /** bucket containing RML mappings */
+      mappingsBucket: mappingsBucket,
+      /** bucket in which to place output files */
+      outputBucket: outputBucket,
+      /** path within the bucket containing RML mappings */
+      //mappingsPath?: string,
     });
   }
 }
