@@ -6,7 +6,7 @@ import { Source, BucketDeployment } from 'aws-cdk-lib/aws-s3-deployment';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { ETLInstance } from './ingestion-instance';
-import { RDFConversionLambda } from './rdf-conversion-lambda';
+import { ConvertToRDFLambda } from './convert-to-rdf-lambda';
 import { IngestionWorkflow } from './ingestion-workflow';
 
 export class EtlPipelineStack extends cdk.Stack {
@@ -93,7 +93,7 @@ export class EtlPipelineStack extends cdk.Stack {
     });
 
     // RDF conversion lambda
-    const rdfConversionLambda = new RDFConversionLambda(this, 'RDFConversionLambda', {
+    const rdfConversionLambda = new ConvertToRDFLambda(this, 'ConvertToRDFLambda', {
       sourceBucket: sourceBucket,
       mappingsBucket: mappingsBucket,
       outputBucket: outputBucket,
