@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2015-2023, metaphacts GmbH
+ */
 package com.metaphacts.etl.lambda;
 
 import static io.restassured.RestAssured.given;

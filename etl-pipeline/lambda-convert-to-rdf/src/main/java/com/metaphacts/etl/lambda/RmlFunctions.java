@@ -1,10 +1,15 @@
+/*
+ * Copyright (C) 2015-2023, metaphacts GmbH
+ */
 package com.metaphacts.etl.lambda;
+
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

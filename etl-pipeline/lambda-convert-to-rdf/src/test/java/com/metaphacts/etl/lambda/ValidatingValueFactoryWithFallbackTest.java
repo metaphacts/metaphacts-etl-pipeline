@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2015-2023, metaphacts GmbH
+ */
 package com.metaphacts.etl.lambda;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -8,8 +11,6 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.base.CoreDatatype;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.junit.jupiter.api.Test;
-
-import com.metaphacts.etl.lambda.ValidatingValueFactoryWithFallback;
 
 class ValidatingValueFactoryWithFallbackTest {
 

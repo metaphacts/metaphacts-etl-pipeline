@@ -13,6 +13,11 @@ ext {
 repositories {
     mavenCentral()
     mavenLocal()
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
 }
 
 dependencies {
@@ -158,6 +163,16 @@ eclipse {
         downloadJavadoc = true
         downloadSources = true
     }
+}
+
+license {
+    // we expect that LICENSE-HEADER.txt file is located in the root of the project
+    header file('src/LICENSE-HEADER.txt')
+    include '**/*.java'
+    mapping {
+        java='SLASHSTAR_STYLE'
+    }
+    strictCheck true
 }
 
 task copyMappings(type: Copy) {
