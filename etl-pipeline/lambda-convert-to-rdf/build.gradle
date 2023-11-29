@@ -116,10 +116,9 @@ dependencies {
     implementation group: 'com.univocity', name: 'univocity-parsers', version: '2.9.1', transitive: false       // CSV
 
     // jsurfer for JSON processing
-    // note: when experiencing issues with bundled ANTLR version, see previous commits
-    // for workaround with a shaded jsurfer
-    implementation group: 'com.github.jsurfer', name: 'jsurfer-all', version: '1.6.4'
-    implementation group: 'com.github.jsurfer', name: 'jsurfer-core', version: '1.6.4'
+    // we need our own variant of jsonsurfer with a shaded version of antlr, as Quarkus uses 
+    // a different version of antlr which cannot be used with this dependency at the same time
+    implementation project(path: ':jsonsurfer-shaded', configuration: 'shadow')
 
     implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.7.0', transitive: false         // JSON
     implementation group: 'net.minidev', name: 'json-smart', version: '2.4.7', transitive: false                // JSON
@@ -142,8 +141,8 @@ group 'com.metaphacts.ds.tm'
 version '1.0.0-SNAPSHOT'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 test {

@@ -1,0 +1,20 @@
+plugins {
+  id 'java'
+  id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+  // we need our own variant of jsonsurfer with a shaded version of antlr, as Quarkus uses 
+  // a different version of antlr which cannot be used with this dependency at the same time
+  implementation group: 'com.github.jsurfer', name: 'jsurfer-all', version: '1.6.4'
+  implementation group: 'com.github.jsurfer', name: 'jsurfer-core', version: '1.6.4'
+}
+
+shadowJar {
+   relocate 'org.antlr.v4', 'com.github.jsurfer.shaded.org.antlr.v4'
+}
