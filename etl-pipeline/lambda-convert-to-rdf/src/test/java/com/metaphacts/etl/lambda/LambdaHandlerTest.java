@@ -4,22 +4,18 @@
 package com.metaphacts.etl.lambda;
 
 import static com.metaphacts.etl.lambda.S3BatchOperationsTestUtils.batchEvent;
-import static com.metaphacts.etl.lambda.S3BatchOperationsTestUtils.createS3Bucket;
-import static com.metaphacts.etl.lambda.S3BatchOperationsTestUtils.listS3BucketContent;
-import static com.metaphacts.etl.lambda.S3BatchOperationsTestUtils.listS3Buckets;
 import static com.metaphacts.etl.lambda.S3BatchOperationsTestUtils.successfulS3BatchEvent;
 import static com.metaphacts.etl.lambda.S3BatchOperationsTestUtils.task;
-import static com.metaphacts.etl.lambda.S3BatchOperationsTestUtils.uploadToS3;
 import static io.restassured.RestAssured.given;
 
 import java.nio.file.Path;
-import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.amazonaws.services.lambda.runtime.events.S3BatchEvent;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import io.restassured.response.ValidatableResponse;
 import jakarta.inject.Inject;
@@ -36,6 +32,8 @@ public class LambdaHandlerTest {
 
     @Inject
     S3Client s3;
+    @Inject
+    FileHelper fileHelper;
 
     @Test
     public void testSimpleLambdaSuccess() throws Exception {
@@ -59,7 +57,7 @@ public class LambdaHandlerTest {
                 .statusCode(200);
 
         System.out.println("Output Content:");
-        listS3BucketContent(s3, outputBucket).forEach(System.out::println);
+        fileHelper.listS3BucketContent(outputBucket).forEach(System.out::println);
 
         // TODO verify results
         response.body(successfulS3BatchEvent(event));
@@ -77,48 +75,45 @@ public class LambdaHandlerTest {
                         .withMappingFiles("publications.ttl")
                         .withSourceFileIncludePattern("publications/.*/records_*.jsonl")
                         .withProcessingHints("json-hierarchy", "deletion-detection", "root-to-list"),
-                new MappingSpec("researchers")
+                new MappingSpec("authors")
                         .withMappingFiles("authors.ttl")
                         .withSourceFileIncludePattern("authors/.*.jsonl")
-                        .withProcessingHints("json-hierarchy", "deletion-detection", "root-to-list"));
-        Gson gson = new Gson();
+                        .withProcessingHints("json-hierarchy", "deletion-detection", "root-to-list")
+                        );
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String mappingsConfigJson = gson.toJson(mappingsConfig);
         System.out.println(mappingsConfigJson);
     }
 
     protected void bootstrapTestData(String sourceBucket, String mappingsBucket, String outputBucket) {
         // bootstrap test data
-        createS3Bucket(s3, sourceBucket);
-        createS3Bucket(s3, mappingsBucket);
-        createS3Bucket(s3, outputBucket);
-
-        Path mappingsFolder = Path.of("src/test");
+        fileHelper.createS3Bucket(sourceBucket);
+        fileHelper.createS3Bucket(mappingsBucket);
+        fileHelper.createS3Bucket(outputBucket);
 
         // upload mapping files to S3
-        List.of("mappings/mappings.json",
-                "mappings/authors.ttl",
-                "mappings/publications.ttl").forEach(file -> {
-                    Path p = Path.of(file);
-                    System.out.println("uploading " + file);
-                    uploadToS3(s3, mappingsBucket, p.toString(), mappingsFolder.resolve(p));
-                });
+        bootstrapFiles(mappingsBucket, Path.of("src/test"),
+                "mappings/mappings.json", "mappings/authors.ttl", "mappings/publications.ttl");
 
         // upload source files to S3
-        Path sourceFolder = Path.of("src/test/source-data/jsonl");
-        List.of("publications/0000001/records_000000001.jsonl",
-                "authors/authors.jsonl").forEach(file -> {
-                    Path p = Path.of(file);
-                    System.out.println("uploading " + file);
-                    uploadToS3(s3, sourceBucket, p.toString(), sourceFolder.resolve(p));
-                });
+        bootstrapFiles(sourceBucket, Path.of("src/test/source-data/jsonl"),
+                "publications/0000001/records_000000001.jsonl", "authors/authors.jsonl");
 
         System.out.println("Buckets:");
-        listS3Buckets(s3).forEach(System.out::println);
+        fileHelper.listS3Buckets().forEach(System.out::println);
 
         System.out.println("Source Content:");
-        listS3BucketContent(s3, sourceBucket).forEach(System.out::println);
+        fileHelper.listS3BucketContent(sourceBucket).forEach(System.out::println);
         System.out.println("Mappings Content:");
-        listS3BucketContent(s3, mappingsBucket).forEach(System.out::println);
+        fileHelper.listS3BucketContent(mappingsBucket).forEach(System.out::println);
 
+    }
+
+    private void bootstrapFiles(String targetBucket, Path localFolder, String... files) {
+        for (String file : files) {
+            Path p = Path.of(file);
+            System.out.println("uploading " + file);
+            fileHelper.uploadToS3(targetBucket, p.toString(), localFolder.resolve(p));
+        }
     }
 }

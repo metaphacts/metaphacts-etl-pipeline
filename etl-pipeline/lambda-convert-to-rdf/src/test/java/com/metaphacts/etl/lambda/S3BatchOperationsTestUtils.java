@@ -3,13 +3,10 @@
  */
 package com.metaphacts.etl.lambda;
 
-import java.io.InputStream;
 import java.io.StringReader;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -22,15 +19,6 @@ import com.amazonaws.services.lambda.runtime.events.S3BatchResponse;
 import com.amazonaws.services.lambda.runtime.events.S3BatchResponse.Result;
 import com.amazonaws.services.lambda.runtime.events.S3BatchResponse.ResultCode;
 import com.google.gson.Gson;
-
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
-import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 /**
  * Helper methods for testing S3BatchOperations.
@@ -80,70 +68,6 @@ public class S3BatchOperationsTestUtils {
      */
     public static Task task(String bucketArn, String key) {
         return Task.builder().withS3BucketArn(bucketArn).withS3Key(key).withS3VersionId("1").build();
-    }
-
-    /**
-     * Upload data to a S3 bucket.
-     * 
-     * @param s3Client      S3 client
-     * @param bucket        bucket to upload to
-     * @param key           key (path) within the bucket
-     * @param stream        input stream from which to read data
-     * @param contentLength length of the data to read
-     */
-    public static void uploadToS3(S3Client s3Client, String bucket, String key, InputStream stream,
-            long contentLength) {
-        PutObjectRequest request = PutObjectRequest.builder().bucket(bucket).key(key).build();
-        /* PutObjectResponse response = */s3Client.putObject(request,
-                RequestBody.fromInputStream(stream, contentLength));
-    }
-
-    /**
-     * Upload data to a S3 bucket.
-     * 
-     * @param s3Client  S3 client
-     * @param bucket    bucket to upload to
-     * @param key       key (path) within the bucket
-     * @param localPath path to file to upload. The path is interpreted relative to
-     *                  the process' current directory
-     */
-    public static void uploadToS3(S3Client s3Client, String bucket, String key, Path localPath) {
-        PutObjectRequest request = PutObjectRequest.builder().bucket(bucket).key(key).build();
-        /* PutObjectResponse response = */s3Client.putObject(request, RequestBody.fromFile(localPath));
-    }
-
-    /**
-     * Create S3 bucket
-     * 
-     * @param s3Client S3 client
-     * @param bucket   bucket to create
-     */
-    public static void createS3Bucket(S3Client s3Client, String bucket) {
-        CreateBucketRequest request = CreateBucketRequest.builder().bucket(bucket).build();
-        /* CreateBucketResponse response = */s3Client.createBucket(request);
-    }
-
-    /**
-     * List S3 buckets
-     * 
-     * @param s3Client S3 client
-     */
-    public static List<String> listS3Buckets(S3Client s3Client) {
-        ListBucketsRequest request = ListBucketsRequest.builder().build();
-        ListBucketsResponse response = s3Client.listBuckets(request);
-        return response.buckets().stream().map(b -> b.name()).collect(Collectors.toList());
-    }
-
-    /**
-     * List contents of S3 bucket
-     * 
-     * @param s3Client S3 client
-     * @param bucket   bucket to create
-     */
-    public static List<String> listS3BucketContent(S3Client s3Client, String bucket) {
-        ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(bucket).build();
-        ListObjectsV2Response response = s3Client.listObjectsV2(request);
-        return response.contents().stream().map(c -> c.key()).collect(Collectors.toList());
     }
 
     /**
