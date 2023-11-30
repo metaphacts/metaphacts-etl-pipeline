@@ -1,2 +1,2 @@
-{ "id": "doc-1" }
-{ "id": "doc-2" }
+{ "id": "doc-1", "title": "Document 1", "authors": [ "author1", "author2", "author3" ], "year": 2023 }
+{ "id": "doc-2", "title": "Document 2", "authors": [ "author1", "author4", "author5" ], "year": 2015 }

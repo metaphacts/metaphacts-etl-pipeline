@@ -1,4 +1,28 @@
 {
   "mappings": [
+    {
+      "id": "publications",
+      "mappingFiles": [
+        "publications.ttl"
+      ],
+      "sourceFileIncludePattern": "publications/.*/records_.*\\.jsonl",
+      "processingHints": [
+        "json-hierarchy",
+        "deletion-detection",
+        "root-to-list"
+      ]
+    },
+    {
+      "id": "authors",
+      "mappingFiles": [
+        "authors.ttl"
+      ],
+      "sourceFileIncludePattern": "authors/.*\\.jsonl",
+      "processingHints": [
+        "json-hierarchy",
+        "deletion-detection",
+        "root-to-list"
+      ]
+    }
   ]
 }

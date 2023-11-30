@@ -3,6 +3,8 @@
  */
 package com.metaphacts.etl.lambda;
 
+import java.util.regex.Pattern;
+
 import org.eclipse.rdf4j.model.Model;
 
 import io.carml.engine.rdf.RdfRmlMapper;
@@ -18,12 +20,35 @@ public class Mapping {
     private final String type;
     private final Model mappingRules;
     private final RdfRmlMapper mapper;
+    private MappingSpec mappingSpec;
+    private Pattern includePattern;
+    private Pattern excludePattern;
     private boolean processLines = false;
 
-    public Mapping(String type, Model mappingRules, RdfRmlMapper mapper) {
-        this.type = type;
+    public Mapping(MappingSpec spec, Model mappingRules, RdfRmlMapper mapper) {
+        this.type = spec.getId();
         this.mappingRules = mappingRules;
+        this.mappingSpec = spec;
         this.mapper = mapper;
+
+        includePattern = parsePattern("include", spec.getSourceFileIncludePattern());
+        excludePattern = parsePattern("exclude", spec.getSourceFileExcludePattern());
+    }
+
+    private Pattern parsePattern(String type, String regexPattern) {
+        if (regexPattern == null) {
+            return null;
+        }
+        try {
+            return Pattern.compile(regexPattern);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(
+                    String.format("invalid %s pattern /%s/: %s", type, regexPattern, e.getMessage()), e);
+        }
+    }
+
+    public MappingSpec getMappingSpec() {
+        return mappingSpec;
     }
 
     public String getType() {
@@ -44,6 +69,22 @@ public class Mapping {
 
     public boolean isProcessLines() {
         return processLines;
+    }
+
+    public boolean matches(String fileName) {
+        if (includePattern != null) {
+            if (!includePattern.matcher(fileName).matches()) {
+                // include pattern is mandatory if specified
+                return false;
+            }
+        }
+        if (excludePattern != null) {
+            if (excludePattern.matcher(fileName).matches()) {
+                // exclude pattern must not match if specified
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -75,5 +116,4 @@ public class Mapping {
             return false;
         return true;
     }
-
 }

@@ -1,0 +1,39 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rr: <http://www.w3.org/ns/r2rml#> .
+@prefix prism: <http://prismstandard.org/namespaces/basic/2.0/> .
+@prefix fabio: <http://purl.org/spar/fabio/> .
+@prefix dcmi: <http://purl.org/dc/terms/> .
+@prefix rml: <http://semweb.mmlab.be/ns/rml#> .
+@prefix ql: <http://semweb.mmlab.be/ns/ql#> .
+@prefix fnml: <http://semweb.mmlab.be/ns/fnml#> .
+@prefix fno: <https://w3id.org/function/ontology#> .
+@prefix schema: <https://schema.org/> .
+
+### Direct mappings
+
+<authors_Person>
+
+    rml:logicalSource [ rml:source [];
+                        rml:referenceFormulation ql:JSONPath;
+                        rml:iterator "$.list[*]" 
+                        ];
+    rr:subjectMap [
+        rr:template "https://example.com/author/{@.id}" ;
+        rr:graphMap [ rr:constant <https://example.com/authors/> ] ;
+        rr:class schema:Person ;
+    ];
+
+    rr:predicateObjectMap [
+        rr:predicate schema:name ;
+        rr:objectMap [ 
+            rml:reference "@.name" ;
+            rr:termType rr:Literal ;
+        ]
+    ];
+    .
+

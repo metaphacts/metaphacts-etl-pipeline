@@ -6,6 +6,7 @@ package com.metaphacts.etl.lambda;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -14,27 +15,26 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.net.URI;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -70,10 +70,8 @@ import com.amazonaws.services.lambda.runtime.events.S3BatchResponse;
 import com.amazonaws.services.lambda.runtime.events.S3BatchResponse.Result;
 import com.amazonaws.services.lambda.runtime.events.S3BatchResponse.Result.ResultBuilder;
 import com.amazonaws.services.lambda.runtime.events.S3BatchResponse.ResultCode;
-import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
 
 import io.carml.engine.rdf.RdfRmlMapper;
@@ -90,13 +88,12 @@ import io.carml.vocab.Rml;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Uri;
+import software.amazon.awssdk.services.s3.S3Utilities;
 import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
 import software.amazon.awssdk.services.s3.internal.resource.S3BucketResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
@@ -105,7 +102,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
-@Named("json2rdf")
+@Named("convert2rdf")
 public class ConvertToRDFLambda implements RequestStreamHandler {
 
     public enum LiteralConversionMode {
@@ -115,19 +112,17 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
     private static final String DEFAULT_DATASET = "default";
     private static final String EXTENSION_GZ = ".gz";
     private static final String EXTENSION_JSONL = ".jsonl";
-    private static final String SUFFIX_DELETE = "_delete.txt.gz";
+    private static final String DEFAULT_MAPPINGS_FILE = "mappings.json";
 
     private static final Logger logger = LoggerFactory.getLogger(ConvertToRDFLambda.class);
 
     private static final String BASE_URI = "http://base.metaphacts.com/";
     private static final IRI BASE_IRI = Values.iri(BASE_URI);
-    private static final IRI STATUS_IRI = Values.iri("urn:recordStatus");
-    private static final IRI ID_IRI = Values.iri("urn:recordId");
     private static final Charset CHARSET_UTF8 = Charset.forName("UTF-8");
 
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final ConversionStats listener = new ConversionStats();
-    private final Map<String, Mapping> mappings = new HashMap<>();
+    private final Map<String, Mapping> mappings = new TreeMap<>();
     private final InheritableThreadLocal<LambdaLogger> lambdaLoggerTL = new InheritableThreadLocal<>();
 
     @Inject
@@ -164,29 +159,6 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
     Boolean rdfOutputCompressed;
     @ConfigProperty(name = "output.context.base", defaultValue = "https://example.com/")
     String contextBaseNamespace;
-    @ConfigProperty(name = "preprocessing.list.enabled", defaultValue = "true")
-    Boolean listPreprocessingEnabled;
-    @ConfigProperty(name = "preprocessing.parent.enabled", defaultValue = "true")
-    Boolean parentPreprocessingEnabled;
-    @ConfigProperty(name = "preprocessing.index.enabled", defaultValue = "true")
-    Boolean indexPreprocessingEnabled;
-    @ConfigProperty(name = "preprocessing.log.enabled", defaultValue = "false")
-    Boolean logPreprocessedEnabled;
-    @ConfigProperty(name = "preprocessing.skipRedirects.enabled", defaultValue = "true")
-    Boolean skipRedirectsEnabled;
-    @ConfigProperty(name = "preprocessing.skipRedirects.pattern", defaultValue = "")
-    String skipRedirectsPattern;
-
-    @ConfigProperty(name = "redis.server", defaultValue = "localhost")
-    String redisServer;
-    @ConfigProperty(name = "redis.port", defaultValue = "6379")
-    Integer redisPort;
-    @ConfigProperty(name = "redis.password", defaultValue = "password")
-    String redisPassword;
-    @ConfigProperty(name = "process.detect.lastupdate", defaultValue = "false")
-    Boolean onlyDetectLastUpdate;
-    @ConfigProperty(name = "process.coldstart", defaultValue = "true")
-    Boolean isColdStart;
 
     Path resolvedInputDir;
     Path resolvedDownloadDir;
@@ -194,10 +166,8 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
     Path resolvedRdfOutputDir;
     RDFFormat resolvedRdfOutputFormat;
 
-    Pattern redirectsPattern = null;
-    JedisPool jedisPool;
-
-
+    @Inject
+    SpecialCases specialCases;
 
     public ConvertToRDFLambda() {
     }
@@ -223,19 +193,6 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
             logger.warn("Output files will not be uploaded to S3: no upload bucket configured!");
             uploadEnabled = false;
         }
-        
-        if (skipRedirectsEnabled) {
-            if (skipRedirectsPattern.isBlank()) {
-                logger.warn("Skipping redirects is enabled but no pattern provided! Disabling skipping of lines");
-            }
-            else {
-                logger.debug("Skipping redirects for line matching the regular exporession {}", skipRedirectsPattern);
-                redirectsPattern = Pattern.compile(skipRedirectsPattern);
-            }
-        }
-        else {
-            redirectsPattern = null;
-        }
 
         // load namespace declarations to be used for pretty printing
         try (InputStream namespaceStream = getClass().getResourceAsStream("/namespaces.ttl")) {
@@ -246,8 +203,6 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         }
 
         prepareMappers();
-        final JedisPoolConfig poolConfig = new JedisPoolConfig();
-        jedisPool = new JedisPool(poolConfig, redisServer, redisPort, 1800 , redisPassword);
     }
 
     @Override
@@ -341,12 +296,23 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
                 .withTaskId(task.getTaskId());
         
         try {
+            // determine mapping for target file
+            String taskFileName = context.getTask().getS3Key();
+            Optional<Mapping> mappingHolder = getMappingFor(taskFileName);
+            if (mappingHolder.isEmpty()) {
+                result.withResultCode(ResultCode.TemporaryFailure)
+                        .withResultString("Failed: no matching mapping found");
+                return result.build();
+            }
+            Mapping mapping = mappingHolder.get();
+
+            // download file to local folder (or access file directly if available)
             Optional<Path> sourceFileHolder = downloadFile(context);
             if (sourceFileHolder.isPresent()) {
                 Path sourceFile = sourceFileHolder.get();
                 try {
                     lambdaLoggerTL.set(context.getLogger());
-                    long statementCount = processFile(context, sourceFile);
+                    long statementCount = processFile(context, mapping, sourceFile);
                     result.withResultCode(ResultCode.Succeeded).withResultString("successfully processed file "
                             + task.getS3Key() + " with " + statementCount + " RDF statements");
                 } finally {
@@ -367,40 +333,24 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         return result.build();
     }
 
-    public long processFile(TaskContext tctx, Path sourceFile) throws IOException {
+    public long processFile(TaskContext tctx, Mapping mapping, Path sourceFile) throws IOException {
         logger.debug("Processing file {}", sourceFile.toString());
 
-        Optional<String> typeHolder = getEntityTypeForSource(tctx, sourceFile);
-        if (typeHolder.isEmpty()) {
-            logger.info("skipping file {}: no recognized entity type", sourceFile);
-            throw new IllegalArgumentException("no recognized entity type");
-        }
-        Optional<String> datasetHolder = getEntityDatasetForSource(tctx, sourceFile);
-        if (datasetHolder.isEmpty()) {
-            logger.info("skipping file {}: no recognized entity dataset", sourceFile);
-            throw new IllegalArgumentException("no recognized entity dataset");
-        }
-        String dataset = datasetHolder.get();
-        String type = typeHolder.get();
-        Optional<Mapping> mappingHolder = getMappingFor(dataset, type);
-        if (mappingHolder.isEmpty()) {
-            logger.info("skipping file {}: no mapping found for type {}", sourceFile, type);
-            throw new IllegalArgumentException("no mapping found for type " + type);
-        }
-        Mapping mapping = mappingHolder.get();
-        RdfRmlMapper rmlMapper = mapping.getMapper();
+        MappingSpec mappingSpec = mapping.getMappingSpec();
+        String dataset = mappingSpec.getDatasetIri();
+        String type = mappingSpec.getId();
 
         long aggregatedSize = 0;
         try (BufferedReader sourceReader = openInputFile(sourceFile)) {
-            Path outputPath = resolveRDFFile(tctx, sourceFile, type);
-            Path outputPathDelete = Paths.get(outputPath.toString() + SUFFIX_DELETE);
+            Path outputPath = resolveRDFFile(tctx, mapping, sourceFile, type);
+            Path outputPathDelete = Paths.get(outputPath.toString() + SpecialCases.SUFFIX_DELETE);
             // determine the target named graph for the source file
             Path inputFile = Path.of(tctx.getTask().getS3Key());
-            String version = tctx.getTask().getS3Key();
-            Resource targetContext = targetContextForSource(inputFile, type, Optional.empty());
+
+            Resource targetContext = targetContextForSource(mappingSpec, inputFile, type, Optional.empty());
             // Add dataset to Context for datasets different from default
-            if (!dataset.equals(DEFAULT_DATASET)){
-                targetContext = targetContextForSource(inputFile, type, Optional.of(dataset));
+            if ((dataset == null) || !DEFAULT_DATASET.equals(dataset)) {
+                targetContext = targetContextForSource(mappingSpec, inputFile, type, Optional.ofNullable(dataset));
             }
 
             logger.debug("Saving statements from file {} to file {} with context {}", inputFile, outputPath,
@@ -410,9 +360,10 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
                 // open RDF file for output
                 try (OutputStream out = openOutputFile(outputPath)) {
                     // create RDF writer and write pre-amble with namespace declarations
-                    RDFWriter writer = openRDFFile(tctx, out, targetContext, namespaces);
+                    RDFWriter writer = openRDFFile(tctx, mapping, out, targetContext, namespaces);
 
                     // process file: iterate over each line in input file
+                    // TODO refactor to allow processing complete file
                     String line;
                     long lineNumber = 0;
                     while ((line = sourceReader.readLine()) != null) {
@@ -426,47 +377,23 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
                             break;
                         }
 
-                        if (skipRedirectsEnabled && (redirectsPattern != null)
-                                && redirectsPattern.matcher(line).matches()) {
-                            logger.trace("Skipping line because it contains redirects : {}", line);
+                        if (!specialCases.processLine(tctx, mapping, line)) {
                             // continue with next line
                             continue;
                         }
+
                         // process line
                         listener.startDocument();
                         boolean success = true;
                         Model model = null;
                         try {
-                            model = processLine(tctx, sourceFile, rmlMapper, line);
-                            var docid = model.getStatements(null, ID_IRI, null).iterator().next().getObject().stringValue();
-                            String lookupKey = uploadBucket + dataset + type + docid;
-                            String lookupKeyHash = DigestUtils.sha256Hex(lookupKey);
-                            if (onlyDetectLastUpdate){
-                                try (Jedis jedis = jedisPool.getResource()) {
-                                    jedis.eval("local newValue = ARGV[2]; local currentValue=redis.call( 'GET' , ARGV[1] ); local result = '' ; if (not currentValue) then result=newValue else if currentValue>newValue then result=currentValue else result=newValue end  end ; redis.call( 'SET' , ARGV[1], result);", 0, lookupKeyHash, version);
-                                }
-                            } else {
-                                var addTriplesToOutput = true;
-                                if (isColdStart){
-                                    //Choose only last version in cold starts
-                                    try (Jedis jedis = jedisPool.getResource()) {
-                                        addTriplesToOutput = jedis.get(lookupKeyHash).equals(version);
-                                    }
-                                }
-                                if (addTriplesToOutput) {
-                                    String entityIRI = model.filter(null, STATUS_IRI, null).subjects().iterator().next().stringValue();
-                                    String status = model.filter(null, STATUS_IRI, null).objects().iterator().next().stringValue();
-                                    if (!isColdStart){
-                                        //Save list of all affected IRIs (only incremental updates)
-                                        outDelete.println(entityIRI);
-                                    }
-                                    if (!status.equals("obsolete")){
-                                        //Remove status triples because they are not needed anymore.
-                                        model.remove(null, STATUS_IRI, null);
-                                        model.remove(null, ID_IRI, null);
-                                        aggregatedSize += writeRDF(writer, model); 
-                                    }
-                                }
+                            model = processLine(tctx, sourceFile, mapping, line);
+
+                            boolean addTriplesToOutput = specialCases.saveProcessTriples(tctx, mapping, sourceFile, model,
+                                    outDelete);
+
+                            if (addTriplesToOutput) {
+                                aggregatedSize += writeRDF(writer, model);
                             }
                         } catch (Exception e) {
                             success = false;
@@ -486,11 +413,16 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
                     endRDF(writer);
                 }
             }
-            if (!onlyDetectLastUpdate){
+            boolean saveResults = specialCases.saveResults(tctx, mapping);
+            if (saveResults) {
                 // upload to S3
-                if (uploadFile(tctx, type, outputPath, outputPathDelete)) {
+                Optional<Path> outputFile = uploadFile(tctx, mapping, sourceFile, outputPath);
+                if (uploadDelete) {
+                    deleteFile(outputPath);
+                }
+                if (outputFile.isPresent()) {
+                    specialCases.onUploadFile(tctx, mapping, sourceFile, outputPathDelete, outputFile.get());
                     if (uploadDelete) {
-                        deleteFile(outputPath);
                         deleteFile(outputPathDelete);
                     }
                 }
@@ -500,13 +432,12 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         }
     }
 
-    private Path resolveRDFFile(TaskContext tctx, Path sourceFile, String type) throws IOException {
-
+    private Path resolveRDFFile(TaskContext tctx, Mapping mapping, Path sourceFile, String type) throws IOException {
         Path inputFile = Path.of(tctx.getTask().getS3Key());
 
         // define file name in output folder
         RDFFormat outputFormat = resolvedRdfOutputFormat;
-        Path outputFile = outputFileForSource(inputFile, type, outputFormat);
+        Path outputFile = outputFileForSource(tctx, mapping, inputFile, outputFormat);
 
         Path outputPath = resolvedRdfOutputDir.resolve(outputFile);
         outputPath = outputPath.toAbsolutePath();
@@ -514,9 +445,8 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         return outputPath;
     }
 
-    private RDFWriter openRDFFile(TaskContext tctx, OutputStream outputStream, Resource targetContext,
-            Model namespaces)
-            throws IOException {
+    private RDFWriter openRDFFile(TaskContext tctx, Mapping mapping, OutputStream outputStream, Resource targetContext,
+            Model namespaces) throws IOException {
         RDFFormat outputFormat = resolvedRdfOutputFormat;
 
         var settings = new WriterConfig();
@@ -555,60 +485,27 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         return outputFolder;
     }
 
-    private Resource targetContextForSource(Path sourceFile, String type, Optional<String> dataset) {
-        IRI targetContext = Values.iri(contextBaseNamespace, type + "/");
-        if (dataset.isPresent()){
-            targetContext = Values.iri(contextBaseNamespace, dataset.get() + "/" + type + "/");
+    private Resource targetContextForSource(MappingSpec mappingSpec, Path sourceFile, String type,
+            Optional<String> dataset) {
+        IRI targetContext = null;
+        String datasetIri = mappingSpec.getDatasetIri();
+        if (datasetIri != null) {
+            targetContext = Values.iri(datasetIri);
+        } else {
+            targetContext = Values.iri(contextBaseNamespace, type + "/");
+            if (dataset.isPresent()) {
+                targetContext = Values.iri(contextBaseNamespace, dataset.get() + "/" + type + "/");
+            }
         }
         return targetContext;
     }
 
-    private Optional<String> getEntityTypeForSource(TaskContext tctx, Path sourceFile) {
-        Path inputFile = Path.of(tctx.getTask().getS3Key());
-        // get 2nd path segment as entity type
-        int n = 1;
-        if (inputFile.getNameCount() > n) {
-            return Optional.ofNullable(inputFile.getName(n).toString());
-        }
-        return Optional.empty();
-    }
-
-    private Optional<String> getEntityDatasetForSource(TaskContext tctx, Path sourceFile) {
-        Path inputFile = Path.of(tctx.getTask().getS3Key());
-        // get 1st path segment as entity dataset
-        int n = 0;
-        if (inputFile.getNameCount() > n) {
-            return Optional.ofNullable(inputFile.getName(n).toString());
-        }
-        return Optional.empty();
-    }
-
-    private Optional<String> getEntityTypeForMapping(Path mappingFile) {
-        if (mappingFile.getNameCount() > 0) {
-            String fileName = mappingFile.getName(mappingFile.getNameCount() - 1).toString();
-            return Optional.ofNullable(FilenameUtils.getBaseName(fileName));
-        }
-        return Optional.empty();
-    }
-
-    private Optional<String> getEntityDatasetForMapping(Path mappingFile) {
-        if (mappingFile.getNameCount() > 0) {
-            String fileName = mappingFile.getName(mappingFile.getNameCount() - 2).toString();
-            return Optional.ofNullable(FilenameUtils.getBaseName(fileName));
-        }
-        return Optional.empty();
-    }
-
-    private Path outputFileForSource(Path sourcePath, String type, RDFFormat outputFormat) {
+    private Path outputFileForSource(TaskContext tctx, Mapping mapping, Path sourcePath, RDFFormat outputFormat) {
         String sourceFile = sourcePath.toString();
-        if (sourceFile.toLowerCase().endsWith(EXTENSION_GZ)) {
-            // strip .gz ending
-            sourceFile = sourceFile.substring(0, sourceFile.length() - EXTENSION_GZ.length());
-        }
-        if (sourceFile.toLowerCase().endsWith(EXTENSION_JSONL)) {
-            // strip .jsonl ending
-            sourceFile = sourceFile.substring(0, sourceFile.length() - EXTENSION_JSONL.length());
-        }
+        // strip .gz ending
+        sourceFile = stripExtension(sourceFile, EXTENSION_GZ);
+        // strip .jsonl ending
+        sourceFile = stripExtension(sourceFile, EXTENSION_JSONL);
 
         // append RDF file format extension
         String outputFile = sourceFile + "." + outputFormat.getDefaultFileExtension();
@@ -620,83 +517,18 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         return Path.of(outputFile);
     }
 
-    public void materializeContextInfo(JsonElement jsonNodeToProcess) {
-        List<String> FIELDS_TO_MATERIALIZE = Arrays.asList("id","name","domain","ocid");
-        String PARENT_PREFIX = "__parent_";
-        String INDEX_FIELD = "__index";
-        String PARENT_KEY = "__parentKey";
-        
-        Map<String, JsonElement> fieldValuesToMaterialize = new HashMap<>();
-        for (Map.Entry<String, JsonElement> attributeValue : jsonNodeToProcess.getAsJsonObject().entrySet()) {
-            if (attributeValue.getKey().startsWith("__") || FIELDS_TO_MATERIALIZE.contains(attributeValue.getKey())) {
-                fieldValuesToMaterialize.put(PARENT_PREFIX + attributeValue.getKey(), jsonNodeToProcess.getAsJsonObject().get(attributeValue.getKey()));
-            }
-        }
-        for (Map.Entry<String, JsonElement> attributeValue : jsonNodeToProcess.getAsJsonObject().entrySet()) {
-            String parentKey = attributeValue.getKey();
-            if (parentPreprocessingEnabled) {
-                if (attributeValue.getValue().isJsonObject()) {
-                    attributeValue.getValue().getAsJsonObject().addProperty(PARENT_KEY, parentKey);
-                    for (Map.Entry<String, JsonElement> materializedFieldValue : fieldValuesToMaterialize.entrySet()) {
-                        attributeValue.getValue().getAsJsonObject().add(materializedFieldValue.getKey(), materializedFieldValue.getValue());
-                    }
-                    materializeContextInfo(attributeValue.getValue());
-                }
-            }
-            if (attributeValue.getValue().isJsonArray()) {
-                List <JsonElement> arrayElements = Lists.newArrayList(attributeValue.getValue().getAsJsonArray().iterator());
-                for (int index=0; index<arrayElements.size(); index++){
-                    if (arrayElements.get(index).isJsonObject()){
-                        if (parentPreprocessingEnabled) {
-                            for (Map.Entry<String, JsonElement> materializedFieldValue : fieldValuesToMaterialize.entrySet()) {
-                                arrayElements.get(index).getAsJsonObject().add(materializedFieldValue.getKey(), materializedFieldValue.getValue());
-                            }
-                            arrayElements.get(index).getAsJsonObject().addProperty(PARENT_KEY, parentKey);
-                        }
-                        if (indexPreprocessingEnabled) {
-                            arrayElements.get(index).getAsJsonObject().addProperty(INDEX_FIELD, index);
-                        }
-                        materializeContextInfo(arrayElements.get(index));
-                    }
-                }
-            }
-        }
-    }
-
-    private Model processLine(TaskContext tctx, Path sourceFile, RdfRmlMapper rmlMapper, String line)
+    private Model processLine(TaskContext tctx, Path sourceFile, Mapping mapping, String line)
             throws IOException {
         Model out = new LinkedHashModel();
 
-        if (indexPreprocessingEnabled || parentPreprocessingEnabled) {
-            Gson gson = new Gson();
-            JsonElement fromJson = gson.fromJson(line, JsonElement.class);
-            materializeContextInfo(fromJson);
-            var id = "";
-            if (fromJson.getAsJsonObject().has("id")){
-                id = fromJson.getAsJsonObject().get("id").getAsString();
-            }
-            if (fromJson.getAsJsonObject().has("ocid")){
-                id = fromJson.getAsJsonObject().get("ocid").getAsString();
-            }
-            out.add(Values.bnode(), ID_IRI, Values.literal(id));
-            // materialize again as string
-            line = fromJson.toString();
-        }
+        line = specialCases.preprocessLine(line, out);
 
-        if (listPreprocessingEnabled) {
-            // wrap as object with a list element
-            line = "{\"list\":[" + line + "]}";
-        }
+        boolean performMapping = specialCases.performMapping(line);
 
-        if ((indexPreprocessingEnabled || parentPreprocessingEnabled || listPreprocessingEnabled)
-                && logPreprocessedEnabled) {
-            // log preprocessed line
-            logger.debug("prepocessed line:\n{}", line);
-        }
-
-        if (!onlyDetectLastUpdate){
+        if (performMapping) {
             // perform mapping for document
             try (StringInputStream input = new StringInputStream(line)) {
+                RdfRmlMapper rmlMapper = mapping.getMapper();
                 Model model = rmlMapper.mapToModel(input);
                 out.addAll(model);
             }
@@ -704,10 +536,40 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         return out;
     }
 
+    private BufferedReader openInputFile(URI uri) throws IOException {
+        InputStream sourceStream = null;
+        if ("s3".equalsIgnoreCase(uri.getScheme())) {
+            // s3: URL
+            S3Utilities s3Utilities = s3.utilities();
+            S3Uri s3Uri = s3Utilities.parseUri(uri);
+            if (!s3Uri.bucket().isPresent() || !s3Uri.key().isPresent()) {
+                throw new IOException("S3 url does not contain bucket");
+            }
+            
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                    .bucket(s3Uri.bucket().get())
+                                                    .key(s3Uri.key().get())
+                                                    .build();
+
+            ResponseInputStream<GetObjectResponse> response = s3.getObject(getObjectRequest);
+            sourceStream = response;
+        } else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            File f = new File(uri);
+            sourceStream = new FileInputStream(f);
+        } else {
+            URL url = uri.toURL();
+            sourceStream = url.openStream();
+        }
+        if (hasExtension(uri.getPath(), EXTENSION_GZ)) {
+            sourceStream = new GZIPInputStream(sourceStream);
+        }
+        BufferedReader sourceReader = new BufferedReader(new InputStreamReader(sourceStream, CHARSET_UTF8));
+        return sourceReader;
+    }
+
     private BufferedReader openInputFile(Path sourceFile) throws IOException {
         InputStream sourceStream = new FileInputStream(sourceFile.toFile());
-        String name = sourceFile.toString();
-        if (name.toLowerCase().endsWith(EXTENSION_GZ)) {
+        if (hasExtension(sourceFile, EXTENSION_GZ)) {
             sourceStream = new GZIPInputStream(sourceStream);
         }
         BufferedReader sourceReader = new BufferedReader(new InputStreamReader(sourceStream, CHARSET_UTF8));
@@ -716,13 +578,30 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
 
     private OutputStream openOutputFile(Path outputPath) throws IOException {
         OutputStream out = new FileOutputStream(outputPath.toFile());
-            
-        String name = outputPath.toString();
-        if (name.toLowerCase().endsWith(EXTENSION_GZ)) {
+
+        if (hasExtension(outputPath, EXTENSION_GZ)) {
             out = new GZIPOutputStream(out);
         }
         
         return out;
+    }
+
+    private boolean hasExtension(Path path, String extension) {
+        String name = path.toString();
+        return hasExtension(name, extension);
+    }
+
+    private boolean hasExtension(String fileName, String extension) {
+        return fileName.toLowerCase().endsWith(extension);
+    }
+
+    private String stripExtension(String fileName, String extension) {
+        if (hasExtension(fileName, extension)) {
+            // strip extension
+            return fileName.substring(0, fileName.length() - extension.length());
+        }
+        // return unchanged
+        return fileName;
     }
 
     private Optional<Path> downloadFile(TaskContext context) {
@@ -767,9 +646,13 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
 
     private String getSourceBucket(TaskContext context) {
         String s3BucketArn = context.getTask().getS3BucketArn();
-        S3Resource s3res = S3ArnConverter.create().convertArn(Arn.fromString(s3BucketArn));
-        if (s3res instanceof S3BucketResource) {
-            return ((S3BucketResource) s3res).bucketName();
+        try {
+            S3Resource s3res = S3ArnConverter.create().convertArn(Arn.fromString(s3BucketArn));
+            if (s3res instanceof S3BucketResource) {
+                return ((S3BucketResource) s3res).bucketName();
+            }
+        } catch (Exception e) {
+            // bucket does not seem to represent an ARN, ignore and use it directly
         }
         // get last past part of ARN
         int pos = s3BucketArn.lastIndexOf(':');
@@ -779,11 +662,11 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         return s3BucketArn;
     }
 
-    private boolean uploadFile(TaskContext tctx, String type, Path localPath, Path localPathDelete) {
+    private Optional<Path> uploadFile(TaskContext tctx, Mapping mapping, Path sourceFile, Path localPath) {
         if (!uploadEnabled) {
             // skip uploading
             logger.trace("Skipped uploading file {}: upload disabled", localPath);
-            return false;
+            return Optional.empty();
         }
         logger.debug("Uploading file {} to {}", localPath, uploadBucket);
         tctx.getLogger().log("Uploading file " + localPath + " to " + uploadBucket);
@@ -792,9 +675,8 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
 
         // define file name in output folder
         RDFFormat outputFormat = resolvedRdfOutputFormat;
-        Path outputFile = outputFileForSource(inputFile, type, outputFormat);
+        Path outputFile = outputFileForSource(tctx, mapping, inputFile, outputFormat);
         String key = outputFile.toString();
-        String keyDelete = key + SUFFIX_DELETE;
         
         // upload to S3
         try {
@@ -802,17 +684,11 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
             PutObjectResponse putResponse = s3.putObject(putRequest, RequestBody.fromFile(localPath));
             logger.trace("Successfully uploaded file {}/{}: {}", uploadBucket, key, putResponse);
 
-            if (!isColdStart){
-                //Upload delete files only for incremental updates
-                PutObjectRequest putRequestDelete = PutObjectRequest.builder().bucket(uploadBucket).key(keyDelete).build();
-                PutObjectResponse putResponseDelete = s3.putObject(putRequestDelete, RequestBody.fromFile(localPathDelete));
-                logger.trace("Successfully uploaded file {}/{}: {}", uploadBucket, keyDelete, putResponseDelete);
-            }
-            return true;
+            return Optional.of(outputFile);
         } catch (Exception e) {
-            logger.warn("Failed to upload file {}/{}/{}: {}", uploadBucket, key, keyDelete, e.getMessage());
+            logger.warn("Failed to upload file {}/{}: {}", uploadBucket, key, e.getMessage());
             logger.debug("Details: ", e);
-            return false;
+            return Optional.empty();
         }
     }
 
@@ -831,34 +707,34 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
     }
 
     /**
-     * Load {@link Model} from provided path.
+     * Load {@link Model} from provided url.
      *
-     * @param path the {@link Path} from which to load RDF data
+     * @param uri the {@link URL} from which to load RDF data
      * @return the {@link Model}.
      */
-    private Model loadModel(Path path) {
-        return parseRDFToStream(path).collect(new ModelCollector());
+    private Model loadModel(URI uri) {
+        return parseRDFToStream(uri).collect(new ModelCollector());
     }
 
-    private Stream<Statement> parseRDFToStream(Path path) {
-        return parseRDFToModel(path)
+    private Stream<Statement> parseRDFToStream(URI uri) {
+        return parseRDFToModel(uri)
                     .map(m -> m.stream())
                     .orElse(Stream.empty());
     }
-    
-    private Optional<Model> parseRDFToModel(Path path) {
-        var fileName = path.getFileName().toString();
+
+    private Optional<Model> parseRDFToModel(URI uri) {
+        var fileName = uri.getPath();
 
         Optional<RDFFormat> rdfFormat = Rio.getParserFormatForFileName(fileName);
         if (!rdfFormat.isPresent()) {
             logger.debug("Skipping file {}: not recognized as RDF file", fileName);
             return Optional.empty();
         }
-        try (var is = Files.newInputStream(path)) {
-            logger.debug("Loading file {}", fileName);
+        try (Reader is = openInputFile(uri)) {
+            logger.debug("Loading file {}", uri);
             return Optional.of(Rio.parse(is, BASE_URI, rdfFormat.get()));
         } catch (IOException | RDFParseException exception) {
-            throw new RuntimeException(String.format("Exception occurred while parsing %s", path), exception);
+            throw new RuntimeException(String.format("Exception occurred while parsing %s", uri), exception);
         }
     }
 
@@ -869,7 +745,7 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
      * @param paths the {@link List} of {@link Path}s to search through.
      * @return the {@link List} of file {@link Path}s.
      */
-    private static List<Path> resolveFilePaths(List<Path> paths) {
+    protected static List<Path> resolveFilePaths(List<Path> paths) {
         return paths.stream().flatMap(path -> {
             try (Stream<Path> walk = Files.walk(path)) {
                 return walk.filter(Files::isRegularFile).collect(Collectors.toList()).stream();
@@ -880,48 +756,130 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
     }
 
     private void prepareMappers() {
-        List<Path> paths = getMappingFiles();
+        Optional<URI> mappingConfigURIHolder = getMappingConfigURI();
+        if (!mappingConfigURIHolder.isPresent()) {
+            // TODO lambdaLogger?
+            logger.warn("No or no valid mapping config file, using empty mapping config!");
+            return;
+        }
 
-        logger.debug("Loading mapping from paths {} ...", paths);
+        URI mappingConfigURI = mappingConfigURIHolder.get();
+        logger.debug("Loading mapping config from path {} ...", mappingConfigURI);
+        Optional<MappingConfig> mappingConfigHolder = getMappingConfig(mappingConfigURI);
+        if (!mappingConfigHolder.isPresent()) {
+            // TODO lambdaLogger?
+            logger.warn("Failed to load mapping config from path {}!", mappingConfigURI);
+            return;
+        }
 
-        for (Path mappingPath : paths) {
-            Optional<RDFFormat> rdfFormat = Rio.getParserFormatForFileName(mappingPath.toString());
-            if (!rdfFormat.isPresent()) {
-                logger.debug("Skipping file {}: not recognized as RDF file", mappingPath);
-                continue;
-            }
-            Optional<String> type = getEntityTypeForMapping(mappingPath);
-            if (type.isEmpty()) {
-                logger.warn("ignoring mapping file {}: no recognized entity type", mappingPath);
-                continue;
-            }
-            String entityType = type.get();
-            Optional<String> dataset = getEntityDatasetForMapping(mappingPath);
-            if (dataset.isEmpty()) {
-                logger.warn("ignoring mapping file {}: no recognized entity dataset", mappingPath);
-                continue;
-            }
-            String entityDataset = dataset.get();
+        // iterate over all mapping specs
+        MappingConfig mappingConfig = mappingConfigHolder.get();
+        for (MappingSpec spec : mappingConfig.getMappings()) {
             try {
-                Model mappingModel = loadModel(mappingPath);
-                logger.debug("loading mapping for {}({}) from {}", entityType, entityDataset, mappingPath);
-                createMapping(entityDataset, entityType, mappingModel);
+                Model mappingModel = null;
+                for (String mappingFile : spec.getMappingFiles()) {
+                    URI mappingFileURI = mappingConfigURI.resolve(mappingFile);
+                    logger.debug("loading mappings for {} from {}", spec.getId(), mappingFileURI);
+                    try {
+                        Model model = loadModel(mappingFileURI);
+                        if (mappingModel == null) {
+                            // first mapping file
+                            mappingModel = model;
+                        } else {
+                            // additional files, merge into aggregated mappings model
+                            mappingModel.addAll(model);
+                        }
+                    } catch (Exception e) {
+                        logger.warn("failed to load mappings from {}: {}", mappingFileURI, e.getMessage());
+                        logger.debug("Details: ", e);
+                        throw e;
+                    }
+                }
+
+                createMapping(mappingConfigURI, spec, mappingModel);
             } catch (Exception e) {
-                logger.warn("failed to load mapping from {}: {}", mappingPath, e.getMessage());
+                logger.warn("failed to load mappings for {}: {}", spec.getId(), e.getMessage());
                 logger.debug("Details: ", e);
             }
-
         }
     }
 
-    private void createMapping(String dataset, String type, Model mappingModel) {
+    private void createMapping(URI mappingConfigURI, MappingSpec spec, Model mappingModel) {
         RdfRmlMapper mapper = prepareMapper(mappingModel);
-        Mapping mapping = new Mapping(type, mappingModel, mapper);
-        mappings.put(dataset.toLowerCase() + '_' + type.toLowerCase(), mapping);
+        Mapping mapping = new Mapping(spec, mappingModel, mapper);
+        mappings.put(spec.getId().toLowerCase(), mapping);
     }
 
-    private Optional<Mapping> getMappingFor(String dataset, String type) {
-        return Optional.ofNullable(mappings.get(dataset.toLowerCase() + '_' + type.toLowerCase()));
+    private Optional<Mapping> getMappingFor(String fileName) {
+        // find matching mapping
+        for (Mapping mapping : mappings.values()) {
+            if (mapping.matches(fileName)) {
+                return Optional.of(mapping);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private Optional<URI> getMappingConfigURI() {
+        if ((mappingsDir != null) && !mappingsDir.isBlank()) {
+            String fileName = mappingsDir.trim();
+            if (fileName.endsWith("/")) {
+                // URI seems to point to a folder
+                // try well-known file name in specified mappings directory
+                fileName = fileName + DEFAULT_MAPPINGS_FILE;
+            }
+            Optional<URI> mappingFileURI = resolveFileOrURI(fileName);
+            if (mappingFileURI.isPresent()) {
+                return mappingFileURI;
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private Optional<URI> resolveFileOrURI(String fileName) {
+        if ((fileName == null) || fileName.isBlank()) {
+            return Optional.empty();
+        }
+        fileName = fileName.trim();
+        // interpret as local file name
+        try {
+            final Path currentDir = Paths.get("").toRealPath();
+            File file = currentDir.resolve(fileName).toFile();
+            if (file.isFile()) {
+                // file exists
+                return Optional.of(file.toURI());
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to resolve target from local file {}: {}!", fileName, e.getMessage());
+        }
+        // interpret as URL
+        try {
+            URI uri = URI.create(fileName);
+            // only return URIs with a scheme/protocol
+            // plain (and existing) file paths would have been resolved above already
+            if (uri.getScheme() != null) {
+                return Optional.of(uri);
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to resolve target from url {}: {}!", fileName, e.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    private Optional<MappingConfig> getMappingConfig(URI mappingConfigURI) {
+        logger.info("Loading mappings from {}", mappingConfigURI);
+        try {
+            try (Reader reader = openInputFile(mappingConfigURI)) {
+                MappingConfig mappingsConfig = gson.fromJson(reader, MappingConfig.class);
+                return Optional.of(mappingsConfig);
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to load mappings from {}: {}!", mappingConfigURI, e.getMessage());
+            logger.debug("Details: ", e);
+        }
+
+        return Optional.empty();
     }
 
     private RdfRmlMapper prepareMapper(Model mappingModel) {
@@ -1044,18 +1002,6 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         });
         mappings.remove(null, RML.SOURCE, null);
         mappings.addAll(sourcesReplacements);
-    }
-
-    /**
-     * Recursively get all mappings within the configured mappings directory
-     * 
-     * @return list of mappings
-     */
-    private List<Path> getMappingFiles() {
-        List<Path> paths = List.of(resolvedMappingsDir);
-        return paths.stream()
-                .flatMap(path -> resolveFilePaths(List.of(path)).stream())
-                .collect(Collectors.toList());
     }
 
     private long writeRDF(RDFWriter writer, Model model) {

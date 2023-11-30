@@ -21,9 +21,18 @@ import com.google.common.hash.Hashing;
 import io.carml.engine.function.FnoFunction;
 import io.carml.engine.function.FnoParam;
 
+/**
+ * This class provides a set of utility functions that can be invoked from RML
+ * mappings.
+ */
 public class RmlFunctions {
     private static final Logger logger = LoggerFactory.getLogger(RmlFunctions.class);
 
+    /**
+     * Return the current date.
+     * 
+     * @return current date in <code>xsd:date</code> format.
+     */
     @FnoFunction("urn:today")
     public String dateToday() {
         String response = null;
@@ -36,6 +45,13 @@ public class RmlFunctions {
         return response;
     }
 
+    /**
+     * Converts a unix timestamp to date-time string.
+     * 
+     * @param epoch unix timestamp (seconds since epoc) as string
+     * 
+     * @return current date in <code>xsd:dateTime</code> format.
+     */
     @FnoFunction("urn:epochTimeToDateTime")
     public String epochTimeToDateTime(@FnoParam("urn:epochTime") String epoch) {
       if (epoch == null) {
@@ -69,6 +85,15 @@ public class RmlFunctions {
       return null;
     }
 
+    /**
+     * Generate a hashed IRI from a prefix and some parameters
+     * 
+     * @param prefix IRI prefix
+     * @param param1 first parameter
+     * @param param2 second parameter
+     * @param param3 third parameter
+     * @return generated IRI
+     */
     @FnoFunction("urn:generateHashedIRI")
     public String generateHashedIRI(@FnoParam("urn:prefix") String prefix, @FnoParam("urn:param1") String param1, @FnoParam("urn:param2") String param2, @FnoParam("urn:param3") String param3) {
       final String DELIMITER = "_";
@@ -95,6 +120,17 @@ public class RmlFunctions {
       return response;
     }
 
+    /**
+     * Normalize a date.
+     * 
+     * <p>
+     * This fixes partial dates, e.g. just a year (e.g. <code>2023</code>, adds
+     * Januar 1st) or year and month (e.g. <code>2023-04</code>, adds 1st day of the
+     * month) or different date-time formats without dashes.
+     * 
+     * @param date date as input string
+     * @return date in <code>xsd:date</code> format
+     */
     @FnoFunction("urn:normalizeDate")
     public String normalizeDate(@FnoParam("urn:date") String date) {
       if (date == null) {
@@ -120,6 +156,12 @@ public class RmlFunctions {
       return response;
     }
 
+    /**
+     * Normalize (format) a unix timestamp
+     * 
+     * @param date unix timestamp (seconds since epoc) as string
+     * @return date in <code>xsd:date</code> format
+     */
     @FnoFunction("urn:normalizeUNIXDate")
     public String normalizeUNIXDate(@FnoParam("urn:date") String date) {
       if (date == null) {
@@ -141,6 +183,19 @@ public class RmlFunctions {
       return response;
     }
 
+    /**
+     * Generate a list of IRIs for the list of provided values based on a prefix and
+     * optional replacement of values
+     * 
+     * @param prefix  IRI prefix
+     * @param inputs  list of values for which to generate an IRI
+     * @param search  search pattern (regular expression) within an input value to
+     *                be replaced
+     * @param replace replacement (may include references to groups in search
+     *                pattern) for the search value
+     * 
+     * @return list of generated IRIs
+     */
     @FnoFunction("urn:generateIRIWithReplace")
     public List<String> generateIRIWithReplace(@FnoParam("urn:prefix") String prefix, @FnoParam("urn:input") List<String> inputs, @FnoParam("urn:search") String search, @FnoParam("urn:replace") String replace) {
       if (inputs == null || inputs.isEmpty()) {

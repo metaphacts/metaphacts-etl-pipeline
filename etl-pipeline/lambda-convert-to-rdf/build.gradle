@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'io.quarkus'
     id 'eclipse'
+    id 'com.github.hierynomus.license' version '0.16.1'
 }
 
 ext {
@@ -137,7 +138,7 @@ dependencies {
     testImplementation 'io.rest-assured:rest-assured'
 }
 
-group 'com.metaphacts.ds.tm'
+group 'com.metaphacts.etl'
 version '1.0.0-SNAPSHOT'
 
 java {
