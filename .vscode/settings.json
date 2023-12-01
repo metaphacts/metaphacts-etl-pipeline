@@ -1,6 +1,19 @@
 {
   "cSpell.words": [
-    "metaphacts"
+    "DCAT",
+    "explorative",
+    "gzipped",
+    "JDBC",
+    "jsonld",
+    "Lucene",
+    "metaphactory",
+    "metaphacts",
+    "SHACL",
+    "SKOS",
+    "SPARQL",
+    "Stardog",
+    "trigs",
+    "ttls"
   ],
   "markdownlint.config": {
     "MD033": { "allowed_elements": ["img"] },
