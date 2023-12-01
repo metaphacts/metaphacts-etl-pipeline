@@ -65,7 +65,12 @@ export class ConvertToRDFLambda extends Construct {
       // TODO refactor package name
       handler: 'com.metaphacts.etl.lambda.ConvertToRDFLambda::handleRequest',
       memorySize: 1024,
-      timeout: cdk.Duration.minutes(15)
+      timeout: cdk.Duration.minutes(15),
+      environment: {
+        "UPLOAD_BUCKET": `${props.outputBucket.bucketName}`,
+        "PROCESS_COLDSTART": "false",
+        "PROCESS_DETECT_LASTUPDATE": "false"
+      }
     });
 
     // Function ARN
