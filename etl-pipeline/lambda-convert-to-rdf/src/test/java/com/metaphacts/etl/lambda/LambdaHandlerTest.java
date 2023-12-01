@@ -46,7 +46,15 @@ public class LambdaHandlerTest {
 
         S3BatchEvent event = batchEvent(
                 task(sourceBucket, "publications/0000001/records_000000001.jsonl"),
-                task(sourceBucket, "authors/authors.jsonl"));
+                task(sourceBucket, "publications/0000002/doc3.json"),
+                task(sourceBucket, "publications/0000002/doc4.json"),
+                task(sourceBucket, "publications/0000002/doc5.json"),
+                task(sourceBucket, "publications/pub1.xml"),
+                task(sourceBucket, "publications/pub2.xml"),
+                task(sourceBucket, "authors/authors.jsonl"),
+                task(sourceBucket, "organizations/companies-dax.csv"),
+                task(sourceBucket, "organizations/companies-nyse.csv")
+                );
         ValidatableResponse response = given()
                 .contentType("application/json")
                 .accept("application/json")
@@ -71,14 +79,25 @@ public class LambdaHandlerTest {
     protected void bootstrapMappings() {
         MappingConfig mappingsConfig = new MappingConfig();
         mappingsConfig.addMappings(
-                new MappingSpec("publications")
-                        .withMappingFiles("publications.ttl")
-                        .withSourceFileIncludePattern("publications/.*/records_*.jsonl")
+                new MappingSpec("publicationsJSONL")
+                        .withMappingFiles("publications-jsonl.ttl")
+                        .withSourceFileIncludePattern("publications/.*/records_.*\\.jsonl$")
+                        .withProcessingHints("json-hierarchy", "deletion-detection", "root-to-list"),
+                new MappingSpec("publicationsJSON")
+                        .withMappingFiles("publications-json.ttl")
+                        .withSourceFileIncludePattern("publications/.*/records_.*\\.json$")
+                        .withProcessingHints("json-hierarchy", "deletion-detection", "root-to-list"),
+                new MappingSpec("publicationsXML")
+                        .withMappingFiles("publications-xml.ttl")
+                        .withSourceFileIncludePattern("publications/.*\\.xml")
                         .withProcessingHints("json-hierarchy", "deletion-detection", "root-to-list"),
                 new MappingSpec("authors")
                         .withMappingFiles("authors.ttl")
-                        .withSourceFileIncludePattern("authors/.*.jsonl")
-                        .withProcessingHints("json-hierarchy", "deletion-detection", "root-to-list")
+                        .withSourceFileIncludePattern("authors/.*\\.jsonl")
+                        .withProcessingHints("json-hierarchy", "deletion-detection", "root-to-list"),
+                new MappingSpec("organizations")
+                        .withMappingFiles("organizations.ttl")
+                        .withSourceFileIncludePattern("organizations/.*\\.csv")
                         );
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String mappingsConfigJson = gson.toJson(mappingsConfig);
@@ -93,11 +112,19 @@ public class LambdaHandlerTest {
 
         // upload mapping files to S3
         bootstrapFiles(mappingsBucket, Path.of("src/test"),
-                "mappings/mappings.json", "mappings/authors.ttl", "mappings/publications.ttl");
+                "mappings/mappings.json", "mappings/authors.ttl", "mappings/organizations.ttl",
+                "mappings/publications-jsonl.ttl", "mappings/publications-json.ttl", "mappings/publications-xml.ttl");
 
         // upload source files to S3
         bootstrapFiles(sourceBucket, Path.of("src/test/source-data/jsonl"),
                 "publications/0000001/records_000000001.jsonl", "authors/authors.jsonl");
+        bootstrapFiles(sourceBucket, Path.of("src/test/source-data/json"),
+                "publications/0000002/doc3.json", "publications/0000002/doc4.json", 
+                "publications/0000002/doc5.json");
+        bootstrapFiles(sourceBucket, Path.of("src/test/source-data/csv"), 
+                "organizations/companies-dax.csv", "organizations/companies-nyse.csv");
+        bootstrapFiles(sourceBucket, Path.of("src/test/source-data/xml"), 
+                "publications/pub1.xml", "publications/pub2.xml");
 
         System.out.println("Buckets:");
         fileHelper.listS3Buckets().forEach(System.out::println);

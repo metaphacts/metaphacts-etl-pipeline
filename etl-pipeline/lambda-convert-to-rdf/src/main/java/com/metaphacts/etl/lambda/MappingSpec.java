@@ -19,6 +19,10 @@ import java.util.regex.Pattern;
  * @author Wolfgang Schell <ws@metaphacts.com>
  */
 public class MappingSpec {
+    public enum LineProcessingMode {
+        auto, document, line;
+    }
+
     /**
      * id for this mapping config (required).
      */
@@ -99,6 +103,11 @@ public class MappingSpec {
      * </p>
      */
     public List<String> processingHints;
+
+    /**
+     * 
+     */
+    public String lineProcessingMode = LineProcessingMode.auto.name();
 
     public MappingSpec() {
     }
@@ -242,5 +251,15 @@ public class MappingSpec {
         return true;
     }
 
+    public LineProcessingMode getLineProcessingMode() {
+        if (lineProcessingMode != null) {
+            try {
+                return LineProcessingMode.valueOf(lineProcessingMode);
+            } catch (Exception e) {
+                // invalid mode, ignore and use default
+            }
+        }
+        return LineProcessingMode.auto;
+    }
     
 }

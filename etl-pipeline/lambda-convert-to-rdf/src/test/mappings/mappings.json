@@ -1,16 +1,35 @@
 {
   "mappings": [
     {
-      "id": "publications",
+      "id": "publicationsJSONL",
       "mappingFiles": [
-        "publications.ttl"
+        "publications-jsonl.ttl"
       ],
-      "sourceFileIncludePattern": "publications/.*/records_.*\\.jsonl",
+      "sourceFileIncludePattern": "publications/.*/records_.*\\.jsonl$",
       "processingHints": [
         "json-hierarchy",
         "deletion-detection",
         "root-to-list"
       ]
+    },
+    {
+      "id": "publicationsJSON",
+      "mappingFiles": [
+        "publications-json.ttl"
+      ],
+      "sourceFileIncludePattern": "publications/.*/.*\\.json$",
+      "processingHints": [
+        "json-hierarchy",
+        "deletion-detection",
+        "root-to-list"
+      ]
+    },
+    {
+      "id": "publicationsXML",
+      "mappingFiles": [
+        "publications-xml.ttl"
+      ],
+      "sourceFileIncludePattern": "publications/.*\\.xml"
     },
     {
       "id": "authors",
@@ -23,6 +42,13 @@
         "deletion-detection",
         "root-to-list"
       ]
+    },
+    {
+      "id": "organizations",
+      "mappingFiles": [
+        "organizations.ttl"
+      ],
+      "sourceFileIncludePattern": "organizations/.*\\.csv"
     }
   ]
 }

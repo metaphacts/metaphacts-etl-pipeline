@@ -21,6 +21,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -53,6 +54,7 @@ import com.amazonaws.services.lambda.runtime.events.S3BatchResponse.ResultCode;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import com.metaphacts.etl.lambda.MappingSpec.LineProcessingMode;
 
 import io.carml.engine.rdf.RdfRmlMapper;
 import jakarta.annotation.PostConstruct;
@@ -291,7 +293,9 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         String type = mappingSpec.getId();
 
         long aggregatedSize = 0;
-        try (BufferedReader sourceReader = fileHelper.openInputReader(sourceFile)) {
+
+        // try (BufferedReader sourceReader = fileHelper.openInputReader(sourceFile)) {
+        try (InputStream sourceStream = fileHelper.openInputStream(sourceFile)) {
             Path outputPath = resolveRDFFile(tctx, mapping, sourceFile, type);
             Path outputPathDelete = Paths.get(outputPath.toString() + SpecialCases.SUFFIX_DELETE);
             // determine the target named graph for the source file
@@ -312,54 +316,13 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
                     // create RDF writer and write pre-amble with namespace declarations
                     RDFWriter writer = openRDFFile(tctx, mapping, out, targetContext, mappingManager.getNamespaces());
 
-                    // process file: iterate over each line in input file
-                    // TODO refactor to allow processing complete file
-                    String line;
-                    long lineNumber = 0;
-                    while ((line = sourceReader.readLine()) != null) {
-                        lineNumber++;
-                        if (lineNumber % 1000 == 0) {
-                            logger.debug("Processed {} lines", lineNumber);
-                        }
-                        if (processLines >= 0 && lineNumber > processLines) {
-                            logger.debug(
-                                    "finished processing the first {} lines of the file, skipping the remaining content");
-                            break;
-                        }
-
-                        if (!specialCases.processLine(tctx, mapping, line)) {
-                            // continue with next line
-                            continue;
-                        }
-
-                        // process line
-                        listener.startDocument();
-                        boolean success = true;
-                        Model model = null;
-                        try {
-                            model = processLine(tctx, sourceFile, mapping, line);
-
-                            boolean addTriplesToOutput = specialCases.saveProcessTriples(tctx, mapping, sourceFile, model,
-                                    outDelete);
-
-                            if (addTriplesToOutput) {
-                                aggregatedSize += writeRDF(writer, model);
-                            }
-                        } catch (Exception e) {
-                            success = false;
-                            logger.warn("Failed to process batch request in line {}: {}", lineNumber, e.toString());
-                            logger.trace("Failed line {}:", lineNumber);
-                            logger.trace(line);
-                            logger.trace("Details: ", e);
-
-                            LambdaLogger lambdaLogger = tctx.getLogger();
-                            lambdaLogger.log("Failed to process batch request: " + e.toString());
-                            lambdaLogger.log("Failed line:");
-                            lambdaLogger.log(line);
-                        }
-                        listener.endDocument(success, (model != null ? model.size() : 0));
+                    boolean processLineByLine = shouldProcessLineByLine(tctx, sourceFile, mapping);
+                    if (processLineByLine) {
+                        aggregatedSize = processLines(tctx, sourceFile, mapping, sourceStream, writer, outDelete);
+                    } else {
+                        aggregatedSize = processDocument(tctx, sourceFile, mapping, sourceStream, writer, outDelete);
                     }
-                    logger.debug("Processed {} lines", lineNumber);
+
                     endRDF(writer);
                 }
             }
@@ -380,6 +343,25 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
 
             return aggregatedSize;
         }
+    }
+
+    private boolean shouldProcessLineByLine(TaskContext tctx, Path sourceFile, Mapping mapping) {
+        LineProcessingMode mode = mapping.getMappingSpec().getLineProcessingMode();
+        switch (mode) {
+        case auto:
+            return isJSONLFile(sourceFile);
+        case document:
+            return false;
+        case line:
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isJSONLFile(Path sourceFile) {
+        String path = sourceFile.toString();
+        path = FileHelper.stripExtension(path, FileHelper.EXTENSION_GZ);
+        return FileHelper.hasExtension(path, FileHelper.EXTENSION_JSONL);
     }
 
     private Path resolveRDFFile(TaskContext tctx, Mapping mapping, Path sourceFile, String type) throws IOException {
@@ -467,6 +449,90 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         return Path.of(outputFile);
     }
 
+    private long processDocument(TaskContext tctx, Path sourceFile, Mapping mapping, InputStream sourceStream,
+            RDFWriter writer, PrintWriter outDelete) throws IOException {
+        long aggregatedSize = 0;
+
+        listener.startDocument();
+        boolean success = true;
+
+        try (InputStream input = sourceStream) {
+
+            // perform mapping on whole document
+            Model model = performMapping(tctx, sourceFile, mapping, input);
+            aggregatedSize += writeRDF(writer, model);
+
+        } catch (Exception e) {
+            success = false;
+            logger.warn("Failed to process batch request: {}", e.toString());
+            logger.trace("Details: ", e);
+
+            LambdaLogger lambdaLogger = tctx.getLogger();
+            lambdaLogger.log("Failed to process batch request: " + e.toString());
+        }
+        listener.endDocument(success, aggregatedSize);
+
+        return aggregatedSize;
+    }
+
+    private long processLines(TaskContext tctx, Path sourceFile, Mapping mapping, InputStream sourceStream,
+            RDFWriter writer, PrintWriter outDelete) throws IOException {
+        AtomicLong aggregatedSize = new AtomicLong();
+        // convert stream to reader to process line by line
+        try (BufferedReader sourceReader = fileHelper.openInputReader(sourceStream)) {
+            // process file: iterate over each line in input file
+            String line;
+            long lineNumber = 0;
+
+            while ((line = sourceReader.readLine()) != null) {
+                lineNumber++;
+                if (lineNumber % 1000 == 0) {
+                    logger.debug("Processed {} lines", lineNumber);
+                }
+                if (processLines >= 0 && lineNumber > processLines) {
+                    logger.debug("finished processing the first {} lines of the file, skipping the remaining content");
+                    break;
+                }
+
+                if (!specialCases.processLine(tctx, mapping, line)) {
+                    // continue with next line
+                    continue;
+                }
+
+                // process line
+                listener.startDocument();
+                boolean success = true;
+                try {
+                    Optional.ofNullable(processLine(tctx, sourceFile, mapping, line)).ifPresent(model -> {
+
+                        boolean addTriplesToOutput = specialCases.saveProcessTriples(tctx, mapping, sourceFile, model,
+                                outDelete);
+
+                        if (addTriplesToOutput) {
+                            long statements = writeRDF(writer, model);
+                            aggregatedSize.addAndGet(statements);
+                        }
+                    });
+                } catch (Exception e) {
+                    success = false;
+                    logger.warn("Failed to process batch request in line {}: {}", lineNumber, e.toString());
+                    logger.trace("Failed line {}:", lineNumber);
+                    logger.trace(line);
+                    logger.trace("Details: ", e);
+
+                    LambdaLogger lambdaLogger = tctx.getLogger();
+                    lambdaLogger.log("Failed to process batch request: " + e.toString());
+                    lambdaLogger.log("Failed line:");
+                    lambdaLogger.log(line);
+                }
+                listener.endDocument(success, aggregatedSize.get());
+            }
+            logger.debug("Processed {} lines", lineNumber);
+        }
+
+        return aggregatedSize.get();
+    }
+
     private Model processLine(TaskContext tctx, Path sourceFile, Mapping mapping, String line)
             throws IOException {
         Model out = new LinkedHashModel();
@@ -478,11 +544,31 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         if (performMapping) {
             // perform mapping for document
             try (StringInputStream input = new StringInputStream(line)) {
-                RdfRmlMapper rmlMapper = mapping.getMapper();
-                Model model = rmlMapper.mapToModel(input);
+                Model model = performMapping(tctx, sourceFile, mapping, input);
                 out.addAll(model);
             }
         }
+        return out;
+    }
+
+    private Model performMapping(TaskContext tctx, Path sourceFile, Mapping mapping, InputStream input)
+            throws IOException {
+        Model out = new LinkedHashModel();
+
+        // perform mapping for document
+        try {
+            RdfRmlMapper rmlMapper = mapping.getMapper();
+            Model model = rmlMapper.mapToModel(input);
+            out.addAll(model);
+        } finally {
+            try {
+                input.close();
+            } catch (Exception e) {
+                logger.warn("Failed to close input stream: " + e.getMessage());
+                logger.debug("Details: ", e);
+            }
+        }
+
         return out;
     }
 
@@ -616,6 +702,9 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
     }
 
     private long writeRDF(RDFWriter writer, Model model) {
+        if (model == null || model.isEmpty()) {
+            return 0;
+        }
 
         for (final Statement st : model) {
             writer.handleStatement(st);
