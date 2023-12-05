@@ -1,0 +1,42 @@
+{
+  "mappings": [
+    {
+      "id": "publications",
+      "mappingFiles": [
+        "publications.ttl"
+      ],
+      "sourceFileIncludePattern": ".*_publications\\.csv"
+    },
+    {
+      "id": "grants",
+      "mappingFiles": [
+        "grants.ttl"
+      ],
+      "sourceFileIncludePattern": ".*_grants\\.csv"
+    },
+    {
+      "id": "datasets",
+      "mappingFiles": [
+        "datasets.ttl"
+      ],
+      "sourceFileIncludePattern": ".*_datasets\\.csv"
+    },
+    {
+      "id": "clinical_trials",
+      "mappingFiles": [
+        "clinical_trials.ttl"
+      ],
+      "sourceFileIncludePattern": ".*_clinical_trials\\.csv"
+    }
+    ,
+    {
+      "id": "rdf-files",
+      "mappingFiles": [
+      ],
+      "sourceFileIncludePattern": ".*\\.{ttl|trig|nt|rdf|nq}",
+      "processingHints": [
+        "copy-rdf"
+      ]
+    }
+  ]
+}

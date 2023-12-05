@@ -1,0 +1,74 @@
+@prefix schema: <https://schema.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ds: <https://dimensions.ai/ontology/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix sp: <http://spinrdf.org/sp#> .
+@prefix prism: <http://prismstandard.org/namespaces/basic/2.0/> .
+@prefix app: <https://apps.dimensions.ai/dashboard/> .
+@prefix fabio: <http://purl.org/spar/fabio/> .
+@prefix ontochem: <http://www.ontochem.com/ontology#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+<file:///document-annotation.ttl> {
+  <http://www.w3.org/ns/oa#Annotation> a owl:Class;
+    rdfs:isDefinedBy <http://ontologies.metaphacts.com/document-annotation> .
+  
+  <http://ontologies.metaphacts.com/document-annotation> a owl:Ontology;
+    dct:creator "Linn Aung", "Peter Haase ";
+    dct:title "Document Annotation"@en;
+    rdfs:label "Document Annotation"@en;
+    <http://www.linkedmodel.org/1.2/schema/vaem#namespace> <http://ontologies.metaphacts.com/document-annotation/>;
+    owl:imports <https://schema.org>, <http://www.w3.org/ns/oa#>, <http://xmlns.com/foaf/0.1/> .
+  
+  <http://www.w3.org/ns/oa#SpecificResource> a owl:Class;
+    rdfs:isDefinedBy <http://ontologies.metaphacts.com/document-annotation> .
+  
+  <http://www.w3.org/ns/oa#SpecificResourceShape> a sh:NodeShape;
+    sh:targetClass <http://www.w3.org/ns/oa#SpecificResource>;
+    sh:property _:40fb436578f9472abe180a1caa2c2db133390, _:40fb436578f9472abe180a1caa2c2db133391 .
+  
+  <http://www.w3.org/ns/oa#AnnotationShape> a sh:NodeShape;
+    sh:targetClass <http://www.w3.org/ns/oa#Annotation>;
+    sh:property _:40fb436578f9472abe180a1caa2c2db133392, _:40fb436578f9472abe180a1caa2c2db133393 .
+  
+  schema:DigitalDocumentShape a sh:NodeShape;
+    sh:targetClass schema:DigitalDocument;
+    sh:property _:40fb436578f9472abe180a1caa2c2db133394 .
+  
+  <http://www.w3.org/ns/oa#TextQuoteSelectorShape> a sh:NodeShape;
+    sh:targetClass <http://www.w3.org/ns/oa#TextQuoteSelector>;
+    sh:property _:40fb436578f9472abe180a1caa2c2db133395, _:40fb436578f9472abe180a1caa2c2db133396 .
+  
+  rdf:value a owl:DatatypeProperty;
+    rdfs:label "value"@en;
+    rdfs:isDefinedBy <http://ontologies.metaphacts.com/document-annotation> .
+  
+  <http://ontologies.metaphacts.com/document-annotation/Statement> a owl:Class;
+    rdfs:label "Statement"@en;
+    rdfs:isDefinedBy <http://ontologies.metaphacts.com/document-annotation> .
+  
+  _:40fb436578f9472abe180a1caa2c2db133390 sh:path <http://www.w3.org/ns/oa#hasSelector>;
+    sh:class <http://www.w3.org/ns/oa#TextQuoteSelector> .
+  
+  _:40fb436578f9472abe180a1caa2c2db133391 sh:path <http://www.w3.org/ns/oa#hasSource>;
+    sh:class schema:CreativeWork .
+  
+  _:40fb436578f9472abe180a1caa2c2db133392 sh:path <http://www.w3.org/ns/oa#hasTarget>;
+    sh:class <http://www.w3.org/ns/oa#SpecificResource> .
+  
+  _:40fb436578f9472abe180a1caa2c2db133393 sh:path <http://www.w3.org/ns/oa#hasBody>;
+    sh:class <http://ontologies.metaphacts.com/document-annotation/Statement> .
+  
+  _:40fb436578f9472abe180a1caa2c2db133394 sh:path schema:url;
+    sh:datatype xsd:string .
+  
+  _:40fb436578f9472abe180a1caa2c2db133395 sh:path rdf:value;
+    sh:datatype xsd:string .
+  
+  _:40fb436578f9472abe180a1caa2c2db133396 sh:path <http://www.w3.org/ns/oa#exact>;
+    sh:datatype xsd:string .
+}

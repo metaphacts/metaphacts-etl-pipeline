@@ -6,9 +6,13 @@ package com.metaphacts.etl.lambda;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -211,5 +215,75 @@ public class RmlFunctions {
         }
       }
       return response;
+    }
+
+    /**
+     * Generate a list of IRIs for the list of provided values. If provided, each
+     * value is split by the separator and trimmed before appending it to the
+     * prefix.
+     * 
+     * @param prefix    IRI prefix
+     * @param inputs    list of values for which to generate an IRI
+     * @param separator separator used to split each input value
+     * 
+     * @return list of generated IRIs
+     */
+    @FnoFunction("urn:generateIRIWithSplit")
+    public List<String> generateIRIWithSplit(@FnoParam("urn:prefix") String prefix,
+            @FnoParam("urn:input") List<String> inputs, @FnoParam("urn:separator") String separator) {
+        if (inputs == null || inputs.isEmpty()) {
+            return List.of();
+        }
+        // iterate over provided values
+        return inputs.stream()
+                // filter null values
+                .filter(Objects::nonNull)
+                // split them into parts when a separator is provided
+                .flatMap(input -> splitValues(input, separator).stream())
+                // generate IRI
+                .map(input -> generateIRIWithReplace(prefix, input))
+                // filter null values
+                .filter(Objects::nonNull)
+                // return as list
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Split value.
+     * 
+     * @param inputValue value to split
+     * @param separator  separator. When <code>null</code>, there original value is
+     *                   returned unchanged
+     * @return list of values or single value when no separator is provided
+     */
+    private Collection<? extends String> splitValues(String inputValue, String separator) {
+        if (inputValue == null) {
+            return List.of();
+        }
+        if (separator == null) {
+            return List.of(inputValue);
+        }
+        String[] parts = inputValue.split(separator);
+        if (parts == null) {
+            return List.of();
+        }
+        return Arrays.asList(parts);
+    }
+
+    /**
+     * Generate an IRI for the provided value.
+     * 
+     * The input value is trimmed to remove leading and trailing whitespace.
+     * 
+     * @param prefix     IRI prefix
+     * @param inputValue value for which to generate an IRI.
+     * 
+     * @return generated IRI or <code>null</code> if no value is provided
+     */
+    private String generateIRIWithReplace(String prefix, String inputValue) {
+        if (inputValue == null) {
+            return null;
+        }
+        return prefix + inputValue.trim();
     }
 }

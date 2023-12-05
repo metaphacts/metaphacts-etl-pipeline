@@ -537,7 +537,7 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         }
 
         if ((aggregatedSize.get() > 0) && (errors > 0) && (successes == 0)) {
-            throw new Exception("Failed to process " + errors + " lines without succesful conversions!");
+            throw new Exception("Failed to process " + errors + " lines without successful conversions!");
         }
 
         return aggregatedSize.get();

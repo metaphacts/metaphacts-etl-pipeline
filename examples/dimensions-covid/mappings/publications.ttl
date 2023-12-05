@@ -1,0 +1,194 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rr: <http://www.w3.org/ns/r2rml#> .
+@prefix prism: <http://prismstandard.org/namespaces/basic/2.0/> .
+@prefix fabio: <http://purl.org/spar/fabio/> .
+@prefix dcmi: <http://purl.org/dc/terms/> .
+@prefix rml: <http://semweb.mmlab.be/ns/rml#> .
+@prefix ql: <http://semweb.mmlab.be/ns/ql#> .
+@prefix fnml: <http://semweb.mmlab.be/ns/fnml#> .
+@prefix fno: <https://w3id.org/function/ontology#> .
+@prefix schema: <https://schema.org/> .
+
+@prefix geonames: <http://www.geonames.org/ontology#> .
+@prefix prism: <http://prismstandard.org/namespaces/basic/2.0/> .
+@prefix fabio: <http://purl.org/spar/fabio/> .
+@prefix ds: <https://dimensions.ai/ontology/> .
+@prefix dsgco: <https://data.dimensions.ai/concepts/> .
+
+# expected format of CSV files:
+# Date added,Publication ID,DOI,PMID,PMCID,Title,Abstract,Source title,Source UID,Publisher,MeSH terms,Publication Date,PubYear,Volume,Issue,Pagination,Open Access,Publication Type,Authors,Corresponding Authors,Authors Affiliations,Research Organizations - standardized,GRID IDs,City of Research organization,Country of Research organization,Funder,UIDs of supporting grants,Times cited,Altmetric,Source Linkout,Dimensions URL
+
+<publications_mappings_publication>
+    rml:logicalSource [
+        rml:source [] ;
+        rml:referenceFormulation ql:CSV ;
+    ] ;
+    rr:subjectMap [
+        rr:template "https://data.dimensions.ai/publication/{Publication ID}";
+		rr:class schema:CreativeWork ;
+        rr:graphMap [ rr:constant <https://data.dimensions.ai/publications/> ] ;
+    ] ;
+
+    rr:predicateObjectMap [
+        rr:predicate schema:name ;
+        rr:objectMap [
+             rml:reference "Title" ;
+             rr:datatype xsd:string 
+        ] ;
+    ] ;
+
+    rr:predicateObjectMap [
+		rr:predicate schema:datePublished ;
+		rr:objectMap [
+			fnml:functionValue [
+				rml:logicalSource [] ;
+				rr:subjectMap [
+					rr:template "functionExec" ;
+					rr:termType rr:BlankNode ;
+					rr:class fno:Execution ;
+				] ;
+				rr:predicateObjectMap
+					[
+						rr:predicate fno:executes ;
+						rr:object <urn:normalizeDate> ;
+					],
+					[
+						rr:predicate <urn:date> ;
+						rr:objectMap [ rml:reference "Publication Date" ]
+					]
+			] ;
+			rr:datatype xsd:date 
+		] 
+	] ;
+
+	rr:predicateObjectMap [
+		rr:predicate fabio:hasPublicationYear;
+		rr:objectMap [
+			rml:reference "PubYear" ;
+			rr:datatype xsd:gYear 
+		] 
+	] ;
+
+	rr:predicateObjectMap [
+		rr:predicate prism:doi;
+		rr:objectMap [
+			rml:reference "DOI" ;
+			rr:datatype xsd:string 
+		] 
+	] ;
+
+    rr:predicateObjectMap [
+		rr:predicate schema:volumeNumber ;
+		rr:objectMap [
+			rml:reference "Volume" ;
+			rr:datatype xsd:string ; # xsd:integer 
+		] 
+	] ;
+
+	rr:predicateObjectMap [
+		rr:predicate schema:issueNumber ;
+		rr:objectMap [
+			rml:reference "Issue" ;
+			rr:datatype xsd:string ; # xsd:integer 
+		] 
+	] ;
+
+    rr:predicateObjectMap [
+		rr:predicate schema:pagination ;
+		rr:objectMap [
+			rml:reference "Pagination" ;
+			rr:datatype xsd:string 
+		] 
+	] ;
+
+    rr:predicateObjectMap [
+		rr:predicate schema:abstract ;
+		rr:objectMap [
+			rml:reference "Abstract" ;
+			rr:datatype xsd:string 
+		] 
+	] ;
+
+    rr:predicateObjectMap [
+		rr:predicate schema:publisher ;
+		rr:objectMap [
+      		rr:parentTriplesMap <publications_mappings_publication_publisher> ;
+      	]
+	] ;
+
+    rr:predicateObjectMap [
+		rr:predicate ds:hasSource ;
+		rr:objectMap [
+      		rr:template "https://data.dimensions.ai/source-title/{Source UID}" ;
+      	]
+	] ;
+    
+    rr:predicateObjectMap [
+		rr:predicate ds:dateInserted;
+		rr:objectMap [
+			fnml:functionValue [
+				rml:logicalSource [] ;
+				rr:subjectMap [
+					rr:template "functionExec" ;
+					rr:termType rr:BlankNode ;
+					rr:class fno:Execution ;
+				] ;
+				rr:predicateObjectMap
+					[
+						rr:predicate fno:executes ;
+						rr:object <urn:epochTimeToDateTime> ;
+					],
+					[
+						rr:predicate <urn:epochTime> ;
+						rr:objectMap [ rml:reference "Date added" ]
+					]
+			] ;
+			rr:datatype xsd:dateTime
+		]
+	];
+.
+
+<publications_mappings_publication_publisher>
+    rml:logicalSource [
+        rml:source [] ;
+        rml:referenceFormulation ql:CSV ;
+    ] ;
+    rr:subjectMap [
+		rr:template "https://data.dimensions.ai/organization/{Publisher}";
+        rr:graphMap [ rr:constant <https://data.dimensions.ai/publications/> ] ;
+		rr:class schema:Organization ;
+        
+	] ;
+	rr:predicateObjectMap [
+		rr:predicate schema:name ;
+		rr:objectMap [
+			rml:reference "Publisher" ;
+			rr:datatype xsd:string
+		] 
+	] ;
+	.
+
+<publications_mappings_publication_sourcetitle>
+    rml:logicalSource [
+        rml:source [] ;
+        rml:referenceFormulation ql:CSV ;
+    ] ;
+    rr:subjectMap [
+        rr:template "https://data.dimensions.ai/source-title/{Source UID}";
+        rr:graphMap [ rr:constant <https://data.dimensions.ai/source-titles/> ] ;
+		rr:class ds:SourceTitle ;
+	] ;
+	rr:predicateObjectMap [
+		rr:predicate schema:name ;
+		rr:objectMap [
+			rml:reference "Source title" ;
+			rr:datatype xsd:string
+		] 
+	] ;
+	.
+

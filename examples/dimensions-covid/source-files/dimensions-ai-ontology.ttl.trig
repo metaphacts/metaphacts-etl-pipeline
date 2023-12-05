@@ -1,0 +1,2275 @@
+@prefix schema: <https://schema.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ds: <https://dimensions.ai/ontology/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix sp: <http://spinrdf.org/sp#> .
+@prefix prism: <http://prismstandard.org/namespaces/basic/2.0/> .
+@prefix app: <https://apps.dimensions.ai/dashboard/> .
+@prefix fabio: <http://purl.org/spar/fabio/> .
+@prefix ontochem: <http://www.ontochem.com/ontology#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+<file:///dimensions-ai-ontology.ttl> {
+  <https://dimensions.ai/ontology/> a owl:Ontology;
+    dct:contributor "Linn Aung";
+    dct:creator "Peter Haase";
+    dct:description "This ontology specifies the classes and properties to describe the Dimensions AI dataset.";
+    dct:title "Dimensions AI";
+    rdfs:label "Dimensions AI";
+    dct:created "2023-02-17T00:00:00Z"^^xsd:dateTime;
+    owl:versionInfo "0.2.0";
+    <http://www.linkedmodel.org/1.2/schema/vaem#namespace> <https://dimensions.ai/ontology/>;
+    owl:imports <http://www.w3.org/2004/02/skos/core>, <https://schema.org>, <http://purl.org/spar/fabio> .
+  
+  ds:91d72fdb-d9a0-455a-9278-c0b91b01115e a sh:PropertyShape;
+    sh:path skos:prefLabel;
+    sh:datatype xsd:string .
+  
+  ds:6cfbee86-f196-43d8-924a-3d684506b910 a sh:PropertyShape;
+    sh:path schema:value;
+    sh:datatype xsd:float .
+  
+  ds:925ede9e-f6e9-4e3f-bac7-5b071ddcd955 a sh:PropertyShape;
+    sh:path schema:currency;
+    sh:datatype xsd:string .
+  
+  ds:2c8bccb4-fa08-4973-9888-e9c37b1f1d68 a sh:PropertyShape;
+    sh:path ds:oaCategory;
+    sh:datatype xsd:string .
+  
+  ds:oaCategory a owl:DatatypeProperty;
+    rdfs:label "oaCategory" .
+  
+  ds:OpenAccess a owl:Class;
+    rdfs:label "Open Access" .
+  
+  ds:228ad902-0343-49ee-bffe-21fe578016b5 a sh:PropertyShape;
+    sh:path schema:position;
+    sh:datatype xsd:integer .
+  
+  ds:8b09e22c-d8cf-4299-a6aa-b3d1f271fa56 a sh:PropertyShape;
+    sh:path schema:name;
+    sh:datatype xsd:string .
+  
+  ds:92ed8bdd-4533-4e05-ab9c-3007c1a6f19b a sh:PropertyShape;
+    sh:path ds:role;
+    sh:datatype xsd:string .
+  
+  ds:role a owl:DatatypeProperty;
+    rdfs:label "role" .
+  
+  ds:a0d42416-e85b-4221-a4a8-d33d6628d35a a sh:PropertyShape;
+    sh:path schema:givenName;
+    sh:datatype xsd:string .
+  
+  ds:a1af6ed7-14ec-4b4d-8e16-66efbef66479 a sh:PropertyShape;
+    sh:path ds:initials;
+    sh:datatype xsd:string .
+  
+  ds:initials a owl:DatatypeProperty;
+    rdfs:label "initials" .
+  
+  ds:b1113821-ec82-49d8-9646-28f0630d9785 a sh:PropertyShape;
+    sh:path ds:hasAuthor .
+  
+  ds:hasAuthor a owl:ObjectProperty;
+    rdfs:label "hasAuthor" .
+  
+  ds:decbf666-b4be-442e-ade3-94033bb73866 a sh:PropertyShape;
+    sh:path ds:hasAffiliation .
+  
+  ds:hasAffiliation a owl:ObjectProperty;
+    rdfs:label "hasAffiliation" .
+  
+  ds:f9aeea4f-2a55-4400-bf4c-d16aff476551 a sh:PropertyShape;
+    sh:path schema:familyName;
+    sh:datatype xsd:string .
+  
+  ds:Authorship a owl:Class;
+    rdfs:label "Authorship" .
+  
+  ds:21ec4ef0-9bda-4ac6-b3f8-b913d43706dd a sh:PropertyShape;
+    sh:path schema:description;
+    sh:datatype xsd:string .
+  
+  ds:9d5b00ba-06a4-4487-939b-27f751221ff3 a sh:PropertyShape;
+    sh:path ds:measureType;
+    sh:datatype xsd:string .
+  
+  ds:measureType a owl:DatatypeProperty;
+    rdfs:label "measureType" .
+  
+  ds:eb63c7df-efa3-4480-a89a-a1cbf55497e1 a sh:PropertyShape;
+    sh:path ds:timeFrame;
+    sh:datatype xsd:string .
+  
+  ds:timeFrame a owl:DatatypeProperty;
+    rdfs:label "timeFrame" .
+  
+  ds:OutcomeMeasure a owl:Class;
+    rdfs:label "OutcomeMeasure" .
+  
+  ds:06dcef22-e023-4100-bc54-bd03282d329e a sh:PropertyShape;
+    sh:path schema:funder .
+  
+  ds:0825ccf2-6d90-4341-81b5-4b50c1306805 a sh:PropertyShape;
+    sh:path schema:endDate;
+    sh:datatype xsd:string .
+  
+  ds:1658da88-b482-44b4-bf42-4dac5fd3550b a sh:PropertyShape;
+    sh:path ds:meshTerm;
+    sh:datatype xsd:string .
+  
+  ds:meshTerm a owl:DatatypeProperty;
+    rdfs:label "meshTerm" .
+  
+  ds:1b321f61-6e63-412a-915c-0317846b456e a sh:PropertyShape;
+    sh:path ds:acronym;
+    sh:datatype xsd:string .
+  
+  ds:acronym a owl:DatatypeProperty;
+    rdfs:label "acronym" .
+  
+  ds:201be1b3-a62b-4a02-a6c0-8210320fe54b a sh:PropertyShape;
+    sh:path fabio:hasShortTitle;
+    sh:datatype xsd:string .
+  
+  ds:223387b1-cab6-414c-8eaa-8a92d4d1e66a a sh:PropertyShape;
+    sh:path ds:startYear;
+    sh:datatype xsd:gYear .
+  
+  ds:startYear a owl:DatatypeProperty;
+    rdfs:label "startYear" .
+  
+  ds:262200cf-3b19-4e36-9470-1b577ef63c24 a sh:PropertyShape;
+    sh:path ds:hasIntervention .
+  
+  ds:hasIntervention a owl:ObjectProperty;
+    rdfs:label "hasIntervention" .
+  
+  ds:Intervention a owl:Class;
+    rdfs:label "MedicalIntervention" .
+  
+  ds:31ceefa7-1fd4-4119-9c89-df6deef0974a a sh:PropertyShape;
+    sh:path schema:gender;
+    sh:datatype xsd:string .
+  
+  ds:36b42a67-edc2-42b1-b952-a03b8bb1d4db a sh:PropertyShape;
+    sh:path schema:creator .
+  
+  ds:38311193-25df-4475-a600-a55e0bcbb17b a sh:PropertyShape;
+    sh:path ds:studyType;
+    sh:datatype xsd:string .
+  
+  ds:studyType a owl:DatatypeProperty;
+    rdfs:label "studyType" .
+  
+  ds:3e49eae7-333f-4106-ba9a-b85b0ff07bee a sh:PropertyShape;
+    sh:path ds:dateInserted;
+    sh:datatype xsd:dateTime .
+  
+  ds:dateInserted a owl:DatatypeProperty;
+    rdfs:label "dateInserted" .
+  
+  ds:414825bf-b295-44f8-a9ba-dd152b4fa5be a sh:PropertyShape;
+    sh:path schema:sponsor .
+  
+  ds:57d69a1d-f909-4084-b7de-6c41721acf42 a sh:PropertyShape;
+    sh:path ds:outcome .
+  
+  ds:outcome a owl:ObjectProperty;
+    rdfs:label "outcome" .
+  
+  ds:5901444e-c474-4d2e-a68e-3bf4a0771ee5 a sh:PropertyShape;
+    sh:path schema:url;
+    sh:datatype xsd:string .
+  
+  ds:657cadbf-6d77-4c9c-aae4-e36c5879b1bf a sh:PropertyShape;
+    sh:path schema:abstract;
+    sh:datatype xsd:string .
+  
+  ds:6660cead-4ea3-4b86-957c-b7ccd7675400 a sh:PropertyShape;
+    sh:path schema:studySubject .
+  
+  ds:Arm a owl:Class;
+    rdfs:label "Arm" .
+  
+  ds:66c098f4-d750-4878-91cd-3d67c709f4eb a sh:PropertyShape;
+    sh:path ds:category .
+  
+  ds:category a owl:ObjectProperty;
+    rdfs:label "category" .
+  
+  ds:Category a owl:Class;
+    rdfs:subClassOf skos:Concept;
+    rdfs:label "Category" .
+  
+  ds:7aa34e68-6aa0-4937-af93-d43c2c29a5db a sh:PropertyShape;
+    sh:path ds:phase;
+    sh:datatype xsd:string .
+  
+  ds:phase a owl:DatatypeProperty;
+    rdfs:label "phase" .
+  
+  ds:7e534fdf-4f84-4426-8a77-b83a509839f7 a sh:PropertyShape;
+    sh:path ds:hasAltmetricScore .
+  
+  ds:hasAltmetricScore a owl:ObjectProperty;
+    rdfs:label "hasAltmetricScore" .
+  
+  ds:AltmetricScore a owl:Class;
+    rdfs:label "Altmetric Score" .
+  
+  ds:7e7aaa2d-9002-4c64-adb1-56ad04f7af32 a sh:PropertyShape;
+    sh:path schema:startDate;
+    sh:datatype xsd:string .
+  
+  ds:80991f57-1e7e-4a75-a4cd-31321fefcb8f a sh:PropertyShape;
+    sh:path ds:studyMaximumAge;
+    sh:datatype xsd:string .
+  
+  ds:studyMaximumAge a owl:DatatypeProperty;
+    rdfs:label "studyMaximumAge" .
+  
+  ds:81a8dbc6-c299-475b-ab30-864989e040c2 a sh:PropertyShape;
+    sh:path schema:name;
+    sh:datatype xsd:string .
+  
+  ds:87abdb1c-2460-421b-aee9-5b8aa2af3349 a sh:PropertyShape;
+    sh:path schema:studyDesign .
+  
+  ds:87b861fd-12f6-4ae7-848b-e61191c7b5aa a sh:PropertyShape;
+    sh:path ds:investigator .
+  
+  ds:investigator a owl:ObjectProperty;
+    rdfs:label "investigator" .
+  
+  ds:88397f6f-77b3-447d-af3b-10ebd15deb75 a sh:PropertyShape;
+    sh:path schema:status;
+    sh:datatype xsd:string .
+  
+  ds:8f226942-385c-4549-858b-b509a12e4ad9 a sh:PropertyShape;
+    sh:path schema:requirements;
+    sh:datatype xsd:string .
+  
+  ds:a614d59e-f136-4bdd-9902-d2cba421ccd8 a sh:PropertyShape;
+    sh:path schema:citation .
+  
+  ds:aa3f123b-db58-49cf-8699-8155a6f872c3 a sh:PropertyShape;
+    sh:path ds:endYear;
+    sh:datatype xsd:gYear .
+  
+  ds:endYear a owl:DatatypeProperty;
+    rdfs:label "endYear" .
+  
+  ds:d108856f-da40-43f3-a337-0f8deb313d79 a sh:PropertyShape;
+    sh:path ds:medicalCondition .
+  
+  ds:medicalCondition a owl:ObjectProperty;
+    rdfs:label "medicalCondition" .
+  
+  <http://id.nlm.nih.gov/mesh/vocab#TopicalDescriptor> a owl:Class;
+    rdfs:subClassOf skos:Concept;
+    rdfs:label "Topical Descriptor" .
+  
+  ds:d80407f1-2626-4324-aca7-71f2266b44e3 a sh:PropertyShape;
+    sh:path ds:studyMinimumAge;
+    sh:datatype xsd:string .
+  
+  ds:studyMinimumAge a owl:DatatypeProperty;
+    rdfs:label "studyMinimumAge" .
+  
+  ds:d8161480-4d82-45d5-9daa-32f7d162b111 a sh:PropertyShape;
+    sh:path ds:hasConceptScore .
+  
+  ds:hasConceptScore a owl:ObjectProperty;
+    rdfs:label "hasConceptScore" .
+  
+  ds:ConceptScore a owl:Class;
+    rdfs:label "ConceptScore" .
+  
+  ds:dac3813c-8161-4590-acf9-8712f68229b9 a sh:PropertyShape;
+    sh:path schema:funding .
+  
+  ds:dd9b5456-816f-4a64-81ca-e3a58e4704b6 a sh:PropertyShape;
+    sh:path schema:healthCondition .
+  
+  ds:f32ab153-1022-47e9-bd4b-07760506db80 a sh:PropertyShape;
+    sh:path ds:registry;
+    sh:datatype xsd:string .
+  
+  ds:registry a owl:DatatypeProperty;
+    rdfs:label "registry" .
+  
+  ds:f7663706-ac64-483a-a3f3-6e80a47b1675 a sh:PropertyShape;
+    sh:path ds:participant;
+    sh:datatype xsd:integer .
+  
+  ds:participant a owl:DatatypeProperty;
+    rdfs:label "participant" .
+  
+  ds:fab14cea-5a77-44e7-9d73-9a9dac381cd5 a sh:PropertyShape;
+    sh:path ds:activeYear;
+    sh:datatype xsd:gYear .
+  
+  ds:activeYear a owl:DatatypeProperty;
+    rdfs:label "activeYear" .
+  
+  ds:72ac6c93-9c62-4881-bad5-7e4dcc59a72f a sh:PropertyShape;
+    sh:path ds:score;
+    sh:datatype xsd:integer .
+  
+  ds:score a owl:DatatypeProperty;
+    rdfs:label "score" .
+  
+  ds:2e7f5f32-16ef-425e-b63a-5050ab52a73a a sh:PropertyShape;
+    sh:path ds:recentCitation;
+    sh:datatype xsd:integer .
+  
+  ds:recentCitation a owl:DatatypeProperty;
+    rdfs:label "recentCitation" .
+  
+  ds:3919233b-d67c-4acf-a24d-5d4fc72bfc3e a sh:PropertyShape;
+    sh:path ds:citedByCount;
+    sh:datatype xsd:integer .
+  
+  ds:citedByCount a owl:DatatypeProperty;
+    rdfs:label "citedByCount" .
+  
+  ds:6bb7e9e9-f7da-4d62-bfff-387ffb8a7783 a sh:PropertyShape;
+    sh:path ds:fieldCitationRatio;
+    sh:datatype xsd:float .
+  
+  ds:fieldCitationRatio a owl:DatatypeProperty;
+    rdfs:label "fieldCitationRatio" .
+  
+  ds:7015ea41-3fd6-46b8-a063-0a24c96a701b a sh:PropertyShape;
+    sh:path ds:relativeCitationRatio;
+    sh:datatype xsd:float .
+  
+  ds:relativeCitationRatio a owl:DatatypeProperty;
+    rdfs:label "relativeCitationRatio" .
+  
+  ds:Metric a owl:Class;
+    rdfs:label "Metric" .
+  
+  ds:09990bbb-5ee8-4b5e-b19e-92ad4ffa2ee0 a sh:PropertyShape;
+    sh:path schema:name;
+    sh:datatype xsd:string .
+  
+  ds:61fe90b8-ab97-4607-ab24-ea076437354f a sh:PropertyShape;
+    sh:path schema:description;
+    sh:datatype xsd:string .
+  
+  ds:ab66df4f-7c96-4b76-8c1c-4bc45e0b5ee2 a sh:PropertyShape;
+    sh:path ds:armType;
+    sh:datatype xsd:string .
+  
+  ds:armType a owl:DatatypeProperty;
+    rdfs:label "armType" .
+  
+  ds:08db3958-9700-4584-b5f6-081ceadb8401 a sh:PropertyShape;
+    sh:path schema:description;
+    sh:datatype xsd:string .
+  
+  ds:1ded354d-ac32-44f1-879e-3789b566aadd a sh:PropertyShape;
+    sh:path schema:name;
+    sh:datatype xsd:string .
+  
+  ds:80d1278c-5fde-4bbd-ba1c-ebf60a4626c7 a sh:PropertyShape;
+    sh:path schema:datePublished;
+    sh:datatype xsd:date .
+  
+  ds:9d35b528-5244-4fba-9007-5219c6fb663c a sh:PropertyShape;
+    sh:path schema:code;
+    sh:datatype xsd:string .
+  
+  ds:b05a50fe-a8b7-4fb5-bf49-c410a7eff134 a sh:PropertyShape;
+    sh:path ds:statusCodeDescription;
+    sh:datatype xsd:string .
+  
+  ds:statusCodeDescription a owl:DatatypeProperty;
+    rdfs:label "statusCodeDescription" .
+  
+  ds:LegalEvent a owl:Class;
+    rdfs:label "LegalEvent" .
+  
+  ds:0dcd8f8d-4756-453f-8034-e2b5fc63b40f a sh:PropertyShape;
+    sh:path schema:event .
+  
+  ds:0f997d8f-7070-48a6-bcb8-2cd0a85b58be a sh:PropertyShape;
+    sh:path schema:author .
+  
+  ds:1002bddb-d051-44ba-8a66-9bda852e23a5 a sh:PropertyShape;
+    sh:path schema:abstract;
+    sh:datatype xsd:string .
+  
+  ds:18569da4-abbf-43a7-890a-e70edc7fb4d0 a sh:PropertyShape;
+    sh:path fabio:hasPubMedId;
+    sh:datatype xsd:string .
+  
+  ds:18e6e30b-05d2-41bb-93b1-44a8defc8c65 a sh:PropertyShape;
+    sh:path schema:issueNumber;
+    sh:datatype xsd:string .
+  
+  ds:28396802-9206-478b-b793-803c511618d9 a sh:PropertyShape;
+    sh:path ds:fundingSection;
+    sh:datatype xsd:string .
+  
+  ds:fundingSection a owl:DatatypeProperty;
+    rdfs:label "fundingSection" .
+  
+  ds:2c37e4ec-bd91-4c69-b9f9-1ffed738814c a sh:PropertyShape;
+    sh:path schema:isbn;
+    sh:datatype xsd:string .
+  
+  ds:308fc6a3-b5a4-4054-8053-8dbf26593c5f a sh:PropertyShape;
+    sh:path schema:funder .
+  
+  ds:3799d1f0-89ea-4dbc-96ba-e4ffa730c4d3 a sh:PropertyShape;
+    sh:path fabio:hasSubtitle;
+    sh:datatype xsd:string .
+  
+  ds:3950cce6-1132-4ae4-ba94-b36db3adf84c a sh:PropertyShape;
+    sh:path schema:isPartOf .
+  
+  ds:3cd93048-3359-4dba-b43f-85c288a8797f a sh:PropertyShape;
+    sh:path schema:volumeNumber;
+    sh:datatype xsd:string .
+  
+  ds:3e46dc8c-305e-4f05-a632-2fba21cce19a a sh:PropertyShape;
+    sh:path fabio:hasPubMedCentralId .
+  
+  ds:3f4dc8fd-c616-42dd-86cb-d56330e2c77a a sh:PropertyShape;
+    sh:path ds:isCitable;
+    sh:datatype xsd:boolean .
+  
+  ds:isCitable a owl:DatatypeProperty;
+    rdfs:label "isCitable" .
+  
+  ds:3f5a6f6c-6ea3-403d-8404-1e96f8bb72e2 a sh:PropertyShape;
+    sh:path ds:dateInserted;
+    sh:datatype xsd:dateTime .
+  
+  ds:4041c587-bd38-4284-ae0d-7a5fc4fa9c7e a sh:PropertyShape;
+    sh:path ds:hasMetric .
+  
+  ds:hasMetric a owl:ObjectProperty;
+    rdfs:label "hasMetric" .
+  
+  ds:40f4b3e8-ba6c-4939-ad02-1a4496204956 a sh:PropertyShape;
+    sh:path schema:additionalType;
+    sh:datatype xsd:string .
+  
+  ds:48711db3-48de-4b1b-bdbc-6696f28f9f45 a sh:PropertyShape;
+    sh:path schema:name;
+    sh:datatype xsd:string .
+  
+  ds:48b38e56-08ab-4684-b53c-ab68a07cab61 a sh:PropertyShape;
+    sh:path ds:dateOnline;
+    sh:datatype xsd:date .
+  
+  ds:dateOnline a owl:DatatypeProperty;
+    rdfs:label "dateOnline" .
+  
+  ds:4c4ad818-e486-4411-8bd2-b36a1e2b266b a sh:PropertyShape;
+    sh:path ds:datePrint;
+    sh:datatype xsd:date .
+  
+  ds:datePrint a owl:DatatypeProperty;
+    rdfs:label "datePrint" .
+  
+  ds:4f442d54-e803-4004-bc08-23a5024ec7c9 a sh:PropertyShape;
+    sh:path fabio:hasArXivId;
+    sh:datatype xsd:string .
+  
+  ds:57a40b4c-4384-4f8a-912a-4bfdf71b10fd a sh:PropertyShape;
+    sh:path schema:funding .
+  
+  ds:604568aa-46ff-433a-84e0-00028c617fca a sh:PropertyShape;
+    sh:path schema:editor .
+  
+  ds:60981789-6d9d-44e8-9029-f76120e80ef1 a sh:PropertyShape;
+    sh:path schema:publisher .
+  
+  ds:6f663680-d97a-43e5-866d-7e89cc8ba57a a sh:PropertyShape;
+    sh:path ds:hasAltmetricScore .
+  
+  ds:7a863272-db5c-41a8-a11b-4c276801aded a sh:PropertyShape;
+    sh:path ds:hasOpenAccess .
+  
+  ds:hasOpenAccess a owl:ObjectProperty;
+    rdfs:label "hasOpenAccess" .
+  
+  ds:80693f21-7af9-4c8f-97d3-7b4cab9c9d46 a sh:PropertyShape;
+    sh:path ds:citationsCount;
+    sh:datatype xsd:integer .
+  
+  ds:citationsCount a owl:DatatypeProperty;
+    rdfs:label "citationsCount" .
+  
+  ds:812d52b2-aa60-4d30-a882-b1226504de4d a sh:PropertyShape;
+    sh:path schema:citation .
+  
+  ds:95b65d13-29fc-45e5-87bf-22dbc594b604 a sh:PropertyShape;
+    sh:path ds:meshHeading;
+    sh:datatype xsd:string .
+  
+  ds:meshHeading a owl:DatatypeProperty;
+    rdfs:label "meshHeading" .
+  
+  ds:a0932f04-6dcb-41c1-aff1-6ed76ca50d80 a sh:PropertyShape;
+    sh:path prism:doi;
+    sh:datatype xsd:string .
+  
+  ds:aa49fbfa-2a0d-4dfe-a816-a67fc4154d9d a sh:PropertyShape;
+    sh:path ds:hasAuthorship .
+  
+  ds:hasAuthorship a owl:ObjectProperty;
+    rdfs:label "hasAuthorship" .
+  
+  ds:adc84b9c-f53e-4551-9f77-9a337f70c61a a sh:PropertyShape;
+    sh:path ds:meshTerm;
+    sh:datatype xsd:string .
+  
+  ds:b57681d2-ddda-483f-93bf-99fb4b4d5a98 a sh:PropertyShape;
+    sh:path schema:datePublished;
+    sh:datatype xsd:date .
+  
+  ds:b766f850-cfc3-41b5-95cf-66e16701f4fc a sh:PropertyShape;
+    sh:path schema:copyrightNotice;
+    sh:datatype xsd:string .
+  
+  ds:ba218280-c81c-439a-b73d-796c3f1c2eef a sh:PropertyShape;
+    sh:path ds:category .
+  
+  ds:c1191b56-a4fc-44e1-96c7-35b604a7d971 a sh:PropertyShape;
+    sh:path ds:clinicalTrial .
+  
+  ds:clinicalTrial a owl:ObjectProperty;
+    rdfs:label "clinicalTrial"@en .
+  
+  ds:c584e5d5-2ec0-49d1-bd00-fcaa1b53e59c a sh:PropertyShape;
+    sh:path ds:hasSupportingGrant .
+  
+  ds:hasSupportingGrant a owl:ObjectProperty;
+    rdfs:label "hasSupportingGrant" .
+  
+  ds:c58b7043-5e1e-4b9d-a77a-16d02dea19c4 a sh:PropertyShape;
+    sh:path schema:pagination;
+    sh:datatype xsd:string .
+  
+  ds:cb094069-00f6-4576-a9ce-81767cc742f9 a sh:PropertyShape;
+    sh:path schema:about .
+  
+  ds:cda635e8-95d5-43fc-9b26-60f998475d10 a sh:PropertyShape;
+    sh:path ds:acknowledgements;
+    sh:datatype xsd:string .
+  
+  ds:acknowledgements a owl:DatatypeProperty;
+    rdfs:label "acknowledgements" .
+  
+  ds:dc384db7-c8f3-4963-adfc-d07dba79fcf1 a sh:PropertyShape;
+    sh:path ds:dateNormal;
+    sh:datatype xsd:date .
+  
+  ds:dateNormal a owl:DatatypeProperty;
+    rdfs:label "dateNormal" .
+  
+  ds:ecca3077-8e1a-4ddb-8555-e1633d5e0627 a sh:PropertyShape;
+    sh:path schema:sourceOrganization .
+  
+  ds:edff1f2c-f281-4d36-b351-de51ef21312f a sh:PropertyShape;
+    sh:path ds:eisbn;
+    sh:datatype xsd:string .
+  
+  ds:eisbn a owl:DatatypeProperty;
+    rdfs:label "eisbn" .
+  
+  ds:eedf0d53-a732-4853-8aba-0dd7142a3bd8 a sh:PropertyShape;
+    sh:path ds:classification;
+    sh:datatype xsd:string .
+  
+  ds:classification a owl:DatatypeProperty;
+    rdfs:label "classification" .
+  
+  ds:ef7009ef-4912-4ca9-b689-c3c479ebb785 a sh:PropertyShape;
+    sh:path ds:hasSource .
+  
+  ds:hasSource a owl:ObjectProperty;
+    rdfs:label "hasSource" .
+  
+  ds:SourceTitle a owl:Class;
+    rdfs:label "SourceTitle" .
+  
+  ds:f4f91e63-5ebe-40ba-aa59-eba0f0509f8e a sh:PropertyShape;
+    sh:path ds:hasConceptScore .
+  
+  ds:10d44c2d-bff6-47f7-80b7-f96b2c124329 a sh:PropertyShape;
+    sh:path schema:dateModified;
+    sh:datatype xsd:dateTime .
+  
+  ds:179a955f-8730-4fee-950d-d3422d5fa116 a sh:PropertyShape;
+    sh:path schema:description;
+    sh:datatype xsd:string .
+  
+  ds:2a79836e-762a-4c9f-90b9-39bbccff9a75 a sh:PropertyShape;
+    sh:path schema:datePublished;
+    sh:datatype xsd:dateTime .
+  
+  ds:2df9ba09-f589-4333-81f1-83e2258fe4c9 a sh:PropertyShape;
+    sh:path ds:hasAuthorship .
+  
+  ds:400162d1-691f-47b8-89c5-3da8013d5df6 a sh:PropertyShape;
+    sh:path schema:name;
+    sh:datatype xsd:string .
+  
+  ds:401e29ff-a8da-49b4-8aaf-4f46fa07af76 a sh:PropertyShape;
+    sh:path schema:creator .
+  
+  ds:44b456f6-36bd-46b4-ab5f-4f0d9a933f2e a sh:PropertyShape;
+    sh:path ds:hasAssociatedGrant .
+  
+  ds:hasAssociatedGrant a owl:ObjectProperty;
+    rdfs:label "hasAssociatedGrant" .
+  
+  ds:608c3747-6dd7-4249-a838-55b62c2d5c15 a sh:PropertyShape;
+    sh:path ds:hasAssociatedPublication .
+  
+  ds:hasAssociatedPublication a owl:ObjectProperty;
+    rdfs:label "hasAssociatedPublication" .
+  
+  ds:7140978f-f7e0-4fc6-aa77-cbd91a408841 a sh:PropertyShape;
+    sh:path ds:hasConceptScore .
+  
+  ds:760d40ff-84d7-431a-9c7b-0b470071034d a sh:PropertyShape;
+    sh:path fabio:hasEmbargoDate;
+    sh:datatype xsd:dateTime .
+  
+  ds:96feb9e3-ee14-459d-bfca-b178da7ae20d a sh:PropertyShape;
+    sh:path ds:year;
+    sh:datatype xsd:gYear .
+  
+  ds:year a owl:DatatypeProperty;
+    rdfs:label "year" .
+  
+  ds:9e544ecc-c8c3-43d2-8baa-2e4a6a90fc86 a sh:PropertyShape;
+    sh:path ds:hasRepository .
+  
+  ds:hasRepository a owl:ObjectProperty;
+    rdfs:label "hasRepository" .
+  
+  ds:b1ddb92f-1d3e-46d7-8848-fc00b7f16dc6 a sh:PropertyShape;
+    sh:path prism:doi;
+    sh:datatype xsd:string .
+  
+  ds:d2d26912-ee97-4e0c-a4c2-e4383b19e7e2 a sh:PropertyShape;
+    sh:path schema:dateCreated;
+    sh:datatype xsd:dateTime .
+  
+  ds:dadb59b5-9dc4-4c4b-a279-756015dad1bf a sh:PropertyShape;
+    sh:path schema:publisher .
+  
+  ds:e49cf4f1-52f8-4fd8-b0a7-2ed0652db517 a sh:PropertyShape;
+    sh:path schema:license .
+  
+  ds:License a owl:Class;
+    rdfs:label "License" .
+  
+  ds:e84dd6ea-3b94-46f2-9e8c-c9effa9a9288 a sh:PropertyShape;
+    sh:path ds:category .
+  
+  ds:0e2c0988-ae04-4342-a5dd-cfcf5788b30c a sh:PropertyShape;
+    sh:path schema:recipient .
+  
+  ds:0f3a005e-c225-4700-a47d-43304488f743 a sh:PropertyShape;
+    sh:path ds:originalTitle;
+    sh:datatype rdf:langString .
+  
+  ds:originalTitle a owl:DatatypeProperty;
+    rdfs:label "originalTitle" .
+  
+  ds:23f6a536-73fc-4259-abff-ec9a6966d84c a sh:PropertyShape;
+    sh:path ds:foaNumber;
+    sh:datatype xsd:string .
+  
+  ds:foaNumber a owl:DatatypeProperty;
+    rdfs:label "foaNumber" .
+  
+  ds:3d0da415-26e9-4579-b15c-ee5b99691e57 a sh:PropertyShape;
+    sh:path schema:inLanguage;
+    sh:datatype xsd:string .
+  
+  ds:460602e7-012e-4544-8e2f-ece2f517146e a sh:PropertyShape;
+    sh:path schema:name;
+    sh:datatype xsd:string .
+  
+  ds:5d696772-c83b-4899-878a-d64ab1288629 a sh:PropertyShape;
+    sh:path ds:dateInserted;
+    sh:datatype xsd:dateTime .
+  
+  ds:64a8ddca-da69-431e-9c90-36c5f1b945b1 a sh:PropertyShape;
+    sh:path ds:activeYear;
+    sh:datatype xsd:gYear .
+  
+  ds:6a4112ec-2383-4ab1-8873-ae1b3877373b a sh:PropertyShape;
+    sh:path ds:endYear;
+    sh:datatype xsd:gYear .
+  
+  ds:72dafa49-ea22-48b9-b263-2beb97e5085c a sh:PropertyShape;
+    sh:path schema:url;
+    sh:datatype xsd:string .
+  
+  ds:74287140-5c04-4509-af21-04312613a927 a sh:PropertyShape;
+    sh:path ds:category .
+  
+  ds:866142a8-27bb-4879-a605-057ea1fe2aec a sh:PropertyShape;
+    sh:path ds:startYear;
+    sh:datatype xsd:gYear .
+  
+  ds:9229f9bb-c6e5-4d6c-b106-5b284fcb3593 a sh:PropertyShape;
+    sh:path ds:grantNumber;
+    sh:datatype xsd:string .
+  
+  ds:grantNumber a owl:DatatypeProperty;
+    rdfs:label "grantNumber" .
+  
+  ds:9eb472ac-70dd-460d-9c90-b04c8e5fec7b a sh:PropertyShape;
+    sh:path ds:support .
+  
+  ds:support a owl:ObjectProperty;
+    rdfs:label "support" .
+  
+  ds:a78a63b4-c140-40fd-a725-f77f542c86cc a sh:PropertyShape;
+    sh:path ds:investigator .
+  
+  ds:ac735fcc-2a4a-44f3-b18e-5a027205e3d8 a sh:PropertyShape;
+    sh:path ds:hasConceptScore .
+  
+  ds:bc853394-b4e9-49d6-9e1c-6c67f88d4e65 a sh:PropertyShape;
+    sh:path schema:abstract;
+    sh:datatype xsd:string .
+  
+  ds:bcf99981-1fad-434c-8745-031b0205e3d9 a sh:PropertyShape;
+    sh:path schema:startDate;
+    sh:datatype xsd:date .
+  
+  ds:ced7ec0b-ee6c-4476-938d-2063109755f2 a sh:PropertyShape;
+    sh:path schema:endDate;
+    sh:datatype xsd:date .
+  
+  ds:d8cbf0a7-6112-485d-ad5d-d055ec916176 a sh:PropertyShape;
+    sh:path ds:originalAbstract;
+    sh:datatype rdf:langString .
+  
+  ds:originalAbstract a owl:DatatypeProperty;
+    rdfs:label "originalAbstract" .
+  
+  ds:db966450-3a84-4f9b-86ea-427ce18c0d21 a sh:PropertyShape;
+    sh:path schema:funder .
+  
+  ds:f91ba616-82ec-48a3-a1d5-ac094c9b57ae a sh:PropertyShape;
+    sh:path schema:creator .
+  
+  ds:fbb61b51-e482-42fc-b94d-489618b5d233 a sh:PropertyShape;
+    sh:path schema:amount .
+  
+  ds:02fc4298-80cf-4d0c-bfe5-b86fe3acb1f3 a sh:PropertyShape;
+    sh:path ds:dateInserted;
+    sh:datatype xsd:dateTime .
+  
+  ds:04f7675a-ee95-416e-8af3-12cb9800db7e a sh:PropertyShape;
+    sh:path schema:url;
+    sh:datatype xsd:string .
+  
+  ds:1560e682-d104-449c-a724-1302d6d5aa3e a sh:PropertyShape;
+    sh:path schema:legislationResponsible .
+  
+  ds:246d3622-2855-44b1-822e-31af8eef3a73 a sh:PropertyShape;
+    sh:path schema:identifier .
+  
+  ds:4aed2bfd-4b74-4091-9420-3aa7460b8326 a sh:PropertyShape;
+    sh:path schema:keywords;
+    sh:datatype xsd:string .
+  
+  ds:5c451a25-5daf-4aad-b303-9cc7895eb52d a sh:PropertyShape;
+    sh:path schema:abstract;
+    sh:datatype xsd:string .
+  
+  ds:62e7fae0-eb5d-4065-aa9d-5e335b9e2974 a sh:PropertyShape;
+    sh:path schema:name;
+    sh:datatype xsd:string .
+  
+  ds:83aa4001-60ff-46fc-8a77-ce0d070ab809 a sh:PropertyShape;
+    sh:path ds:dateNormal;
+    sh:datatype xsd:date .
+  
+  ds:a025d2c9-deac-452f-97ee-ad625f1930fd a sh:PropertyShape;
+    sh:path prism:doi;
+    sh:datatype xsd:string .
+  
+  ds:ad4115f8-cd96-4aaf-86fd-34847a759bb4 a sh:PropertyShape;
+    sh:path ds:hasAuthorship .
+  
+  ds:bca3a498-59db-402d-9933-d0e315827e2f a sh:PropertyShape;
+    sh:path ds:category .
+  
+  ds:cf42c85a-757e-46eb-b24f-bd66f3f3dcff a sh:PropertyShape;
+    sh:path schema:creator .
+  
+  ds:d58e8fc5-4e2d-436f-a0de-1a4876ff128b a sh:PropertyShape;
+    sh:path fabio:hasPublicationYear;
+    sh:datatype xsd:gYear .
+  
+  ds:e625e0e0-5fb4-4d5b-88a6-fb3ad27261ed a sh:PropertyShape;
+    sh:path schema:datePublished;
+    sh:datatype xsd:date .
+  
+  ds:fba1dc20-cd21-4df7-b959-21b4c19dd151 a sh:PropertyShape;
+    sh:path schema:publisher .
+  
+  ds:ffb865ae-6e0a-47bf-a0e7-c9ee74f0870d a sh:PropertyShape;
+    sh:path schema:funder .
+  
+  ds:0d8e277b-4eef-4219-b43a-829ebf2f6b0f a sh:PropertyShape;
+    sh:path fabio:hasPubMedId;
+    sh:datatype xsd:string .
+  
+  ds:351728e9-9f3c-417f-a7b9-66547acb2d3f a sh:PropertyShape;
+    sh:path ds:postedOn;
+    sh:datatype xsd:dateTime .
+  
+  ds:postedOn a owl:DatatypeProperty;
+    rdfs:label "postedOn" .
+  
+  ds:3ea5314d-561e-4a25-9559-dce9902800e9 a sh:PropertyShape;
+    sh:path schema:citation .
+  
+  ds:41352c35-eab9-4081-a25a-2f25e4c24270 a sh:PropertyShape;
+    sh:path prism:doi;
+    sh:datatype xsd:string .
+  
+  ds:4284c938-afed-4ed5-ba60-c460fb927d71 a sh:PropertyShape;
+    sh:path schema:name;
+    sh:datatype xsd:string .
+  
+  ds:59e145ca-bfff-448e-9318-89088cdfbf11 a sh:PropertyShape;
+    sh:path fabio:hasArXivId;
+    sh:datatype xsd:string .
+  
+  ds:7177adb6-ecfa-4152-9399-5a2c975a0950 a sh:PropertyShape;
+    sh:path ds:year;
+    sh:datatype xsd:gYear .
+  
+  ds:7a07e854-2cb7-4c75-b2e5-49bada1d23d6 a sh:PropertyShape;
+    sh:path ds:category .
+  
+  ds:9ef5210f-87a0-411b-9f30-48c595acbc98 a sh:PropertyShape;
+    sh:path schema:publisher .
+  
+  ds:b43af381-3d1a-4d04-aabe-230a53748c25 a sh:PropertyShape;
+    sh:path ds:dateInserted;
+    sh:datatype xsd:dateTime .
+  
+  ds:f50998d2-a249-452f-b5bb-584f9ea4f0db a sh:PropertyShape;
+    sh:path ds:hasConceptScore .
+  
+  ds:f98758f0-07c6-4269-8eae-53dfe84ae086 a sh:PropertyShape;
+    sh:path schema:url;
+    sh:datatype xsd:string .
+  
+  ds:PolicyDocument a owl:Class;
+    rdfs:label "Policy Document" .
+  
+  ds:0215f58d-01be-480c-b0d2-cb7a1cc4e3f3 a sh:PropertyShape;
+    sh:path ds:armGroupName;
+    sh:datatype xsd:string .
+  
+  ds:armGroupName a owl:DatatypeProperty;
+    rdfs:label "armGroupName" .
+  
+  ds:251fa764-d683-4d42-a4b6-2493d887b0db a sh:PropertyShape;
+    sh:path schema:description;
+    sh:datatype xsd:string .
+  
+  ds:72257f8f-6bd3-457b-b233-fb85f7e97b27 a sh:PropertyShape;
+    sh:path schema:name;
+    sh:datatype xsd:string .
+  
+  ds:a1776f56-9463-4d06-ae46-1c5fa4cf78a0 a sh:PropertyShape;
+    sh:path schema:alternateName;
+    sh:datatype xsd:string .
+  
+  ds:c804a50b-120a-43a5-9e1b-153ba8de16d2 a sh:PropertyShape;
+    sh:path ds:interventionType;
+    sh:datatype xsd:string .
+  
+  ds:interventionType a owl:DatatypeProperty;
+    rdfs:label "interventionType" .
+  
+  ds:56dfe43f-0033-49c0-8c84-2f194b2e1c37 a sh:PropertyShape;
+    sh:path schema:addressRegion;
+    sh:datatype xsd:string .
+  
+  ds:6737ed3e-6f67-4c22-9d88-702197b46110 a sh:PropertyShape;
+    sh:path schema:streetAddress;
+    sh:datatype xsd:string .
+  
+  ds:884dde87-b50e-47c7-9ef6-8cba3155827e a sh:PropertyShape;
+    sh:path schema:longitude;
+    sh:datatype xsd:float .
+  
+  ds:8a808692-858d-469f-a17c-1e8672056091 a sh:PropertyShape;
+    sh:path schema:addressCountry;
+    sh:datatype xsd:string .
+  
+  ds:95e9dc52-349b-4c46-9ac5-7cae974e7994 a sh:PropertyShape;
+    sh:path schema:addressLocality;
+    sh:datatype xsd:string .
+  
+  ds:ad87feb7-fc12-4dbe-92d1-9edf8d3a5abe a sh:PropertyShape;
+    sh:path schema:latitude;
+    sh:datatype xsd:float .
+  
+  ds:dddad7f3-b80e-4bdf-b415-86ca68e42407 a sh:PropertyShape;
+    sh:path schema:postalCode;
+    sh:datatype xsd:string .
+  
+  ds:149eb348-706a-44da-b1a7-e19986ddbb72 a sh:PropertyShape;
+    sh:path schema:name;
+    sh:datatype xsd:string .
+  
+  ds:dbd20bc5-fd92-4185-9ae5-5d6b06f73dde a sh:PropertyShape;
+    sh:path schema:url;
+    sh:datatype xsd:string .
+  
+  ds:cbcc8377-14e3-4f3a-a20e-50c5a2ec71f9 a sh:PropertyShape;
+    sh:path schema:name;
+    sh:datatype xsd:string .
+  
+  ds:57815f54-0645-492c-9338-8699b6618e33 a sh:PropertyShape;
+    sh:path ds:score;
+    sh:datatype xsd:float .
+  
+  ds:a312a114-b9c8-4fbb-9b01-262a3357e7aa a sh:PropertyShape;
+    sh:path skos:prefLabel;
+    sh:datatype xsd:string .
+  
+  ds:0827082a-a7fd-4c1f-a9f5-d1dc966b9161 a sh:PropertyShape;
+    sh:path ds:sourceType;
+    sh:datatype xsd:string .
+  
+  ds:sourceType a owl:DatatypeProperty;
+    rdfs:label "sourceType" .
+  
+  ds:1fbe89ef-13eb-4dca-a616-8eda549555be a sh:PropertyShape;
+    sh:path schema:issn;
+    sh:datatype xsd:string .
+  
+  ds:20b98e98-8015-49c6-90e5-cc991871ae7f a sh:PropertyShape;
+    sh:path ds:sjr;
+    sh:datatype xsd:float .
+  
+  ds:sjr a owl:DatatypeProperty;
+    rdfs:label "sjr" .
+  
+  ds:2676cb18-86f3-4612-83ba-7597cd888d9b a sh:PropertyShape;
+    sh:path schema:datePublished;
+    sh:datatype xsd:date .
+  
+  ds:31888854-48a6-4276-b7d4-11d01c31af26 a sh:PropertyShape;
+    sh:path ds:snip;
+    sh:datatype xsd:float .
+  
+  ds:snip a owl:DatatypeProperty;
+    rdfs:label "snip" .
+  
+  ds:3a318f0a-12d5-4fbd-a3a3-184d73686b09 a sh:PropertyShape;
+    sh:path prism:eIssn;
+    sh:datatype xsd:string .
+  
+  ds:5b9cb945-7339-44a9-8892-57c2ee9bdb5d a sh:PropertyShape;
+    sh:path schema:url;
+    sh:datatype xsd:string .
+  
+  ds:72a0166a-b8a4-490a-9f86-2256edddc1dd a sh:PropertyShape;
+    sh:path ds:issnPrint;
+    sh:datatype xsd:string .
+  
+  ds:issnPrint a owl:DatatypeProperty;
+    rdfs:label "issnPrint" .
+  
+  ds:88de557b-29d9-458a-9249-ed0b63b5e1a8 a sh:PropertyShape;
+    sh:path ds:journal;
+    sh:datatype xsd:string .
+  
+  ds:journal a owl:DatatypeProperty;
+    rdfs:label "journal" .
+  
+  ds:c5ffb531-79d2-46c1-ba08-8ebf27ebd6ac a sh:PropertyShape;
+    sh:path schema:name;
+    sh:datatype xsd:string .
+  
+  ds:4ea9cd43-b26f-470e-8d44-35db551c7007 a sh:PropertyShape;
+    sh:path ds:locationName;
+    sh:datatype xsd:string .
+  
+  ds:locationName a owl:DatatypeProperty;
+    rdfs:label "locationName" .
+  
+  ds:838a2ac6-95a0-48cc-9a59-79fd7662d15f a sh:PropertyShape;
+    sh:path schema:name;
+    sh:datatype xsd:string .
+  
+  ds:9c450c3f-5cfc-4c11-b9c9-dabf4b71cfdf a sh:PropertyShape;
+    sh:path schema:name;
+    sh:datatype xsd:string .
+  
+  ds:b9d161a3-6932-4dc2-90c1-c637b4867fcd a sh:PropertyShape;
+    sh:path schema:url;
+    sh:datatype xsd:string .
+  
+  ds:26a76bab-a2e8-47ba-82ac-2437e2497351 a sh:PropertyShape;
+    sh:path ds:interventionModel .
+  
+  ds:interventionModel a owl:DatatypeProperty;
+    rdfs:label "interventionModel" .
+  
+  ds:67f4ee53-9340-4402-9395-6b24a1a0ece5 a sh:PropertyShape;
+    sh:path ds:allocation .
+  
+  ds:allocation a owl:DatatypeProperty;
+    rdfs:label "allocation" .
+  
+  ds:afe249fc-9a62-47c4-8874-7a6d4da5298e a sh:PropertyShape;
+    sh:path ds:masking .
+  
+  ds:masking a owl:DatatypeProperty;
+    rdfs:label "masking" .
+  
+  ds:dd04423c-4abe-4bd7-8926-e9618232eb29 a sh:PropertyShape;
+    sh:path ds:primaryPurpose .
+  
+  ds:primaryPurpose a owl:DatatypeProperty;
+    rdfs:label "primaryPurpose" .
+  
+  ds:022e449c-9d37-4e66-ae4e-e4e78ba68305 a sh:PropertyShape;
+    sh:path schema:identifier .
+  
+  ds:177cdfca-5ebf-4b87-8748-e3f9467adf3e a sh:PropertyShape;
+    sh:path ds:firstGrantYear .
+  
+  ds:firstGrantYear a owl:DatatypeProperty;
+    rdfs:label "firstGrantYear" .
+  
+  ds:2ec00541-a1ab-4f9a-9b1e-b39f662200a0 a sh:PropertyShape;
+    sh:path schema:funder .
+  
+  ds:3a8f91ad-2da2-4d88-8ece-8d6158398d48 a sh:PropertyShape;
+    sh:path schema:familyName .
+  
+  ds:3d9c2fea-2044-4395-b32a-4ea86a23cbe6 a sh:PropertyShape;
+    sh:path schema:memberOf .
+  
+  ds:50d14d1d-6048-4540-854e-c3dd3ea56c4b a sh:PropertyShape;
+    sh:path schema:affiliation .
+  
+  ds:5c93d3d0-bc13-4e98-bb29-91ca1e47cbe8 a sh:PropertyShape;
+    sh:path ds:publicationsCount .
+  
+  ds:publicationsCount a owl:DatatypeProperty;
+    rdfs:label "publicationsCount" .
+  
+  ds:7a569d56-f35c-4fdd-885e-77ad1d057c3b a sh:PropertyShape;
+    sh:path ds:firstPublicationYear .
+  
+  ds:firstPublicationYear a owl:DatatypeProperty;
+    rdfs:label """firstPublicationYear 	""" .
+  
+  ds:8772ef1b-436a-4f85-b2a9-de54819355b7 a sh:PropertyShape;
+    sh:path schema:roleName .
+  
+  ds:8e1ffc5f-5068-48d0-8910-986361607f0a a sh:PropertyShape;
+    sh:path ds:lastGrantYear .
+  
+  ds:lastGrantYear a owl:DatatypeProperty;
+    rdfs:label "lastGrantYear" .
+  
+  ds:b0087595-ca1d-4ebd-82c6-768a0dc8f5eb a sh:PropertyShape;
+    sh:path schema:givenName .
+  
+  ds:c53a6c82-824c-4802-918c-b357701cdc12 a sh:PropertyShape;
+    sh:path schema:name .
+  
+  ds:ca79327f-8708-4c44-bc7f-39427fdd704a a sh:PropertyShape;
+    sh:path ds:lastPublicationYear .
+  
+  ds:lastPublicationYear a owl:DatatypeProperty;
+    rdfs:label "lastPublicationYear" .
+  
+  ds:da5d676c-d6de-46da-af2a-eda695bd3ddd a sh:PropertyShape;
+    sh:path ds:grantsCount .
+  
+  ds:grantsCount a owl:DatatypeProperty;
+    rdfs:label "grantsCount" .
+  
+  ds:04a841e8-a31b-4af2-9df7-0eae677a4077 a sh:PropertyShape;
+    sh:path schema:subOrganization .
+  
+  ds:336d272c-5595-4c40-bf5b-add393f44a6f a sh:PropertyShape;
+    sh:path ds:acronym .
+  
+  ds:3cb8214a-78be-4601-a36c-570ae5cce7e6 a sh:PropertyShape;
+    sh:path schema:email .
+  
+  ds:602bbe8e-4d13-4781-a713-30df2693db56 a sh:PropertyShape;
+    sh:path schema:alternateName .
+  
+  ds:6264b602-d864-42b9-9abf-6b1c9790ba9c a sh:PropertyShape;
+    sh:path schema:dissolutionDate .
+  
+  ds:752e98bb-f105-440c-aae2-df526bdecc50 a sh:PropertyShape;
+    sh:path schema:parentOrganization .
+  
+  ds:7a03bfc1-8842-4d5b-8689-fcd8e227f6d8 a sh:PropertyShape;
+    sh:path schema:url .
+  
+  ds:c26df17e-4ce6-4798-8c98-120ce5351c0a a sh:PropertyShape;
+    sh:path schema:address .
+  
+  ds:d98b2b8a-ddf2-42e5-8db2-9ad52dc740b8 a sh:PropertyShape;
+    sh:path schema:identifier .
+  
+  ds:dd95b676-1eab-471a-86a8-dee340f20814 a sh:PropertyShape;
+    sh:path ds:related .
+  
+  ds:related a owl:ObjectProperty;
+    rdfs:label "related" .
+  
+  ds:e60c118e-97ec-4940-b025-1da58b068eaf a sh:PropertyShape;
+    sh:path schema:foundingDate .
+  
+  ds:eb2f375a-c6af-4449-aba4-71316577c90e a sh:PropertyShape;
+    sh:path ds:organizationType .
+  
+  ds:organizationType a owl:DatatypeProperty;
+    rdfs:label "organizationType" .
+  
+  ds:f90c5870-467d-46fb-9b94-2dfaf6291328 a sh:PropertyShape;
+    sh:path schema:name .
+  
+  ds:11426a86-70da-4552-a90f-35591fc2308a a sh:PropertyShape;
+    sh:path ds:applicantFullName .
+  
+  ds:applicantFullName a owl:DatatypeProperty;
+    rdfs:label "applicantFullName" .
+  
+  ds:51a0a21f-c58a-4c5a-b5e8-06c7965808f5 a sh:PropertyShape;
+    sh:path ds:applicationNumber .
+  
+  ds:applicationNumber a owl:DatatypeProperty;
+    rdfs:label "applicationNumber" .
+  
+  ds:7b5deb18-ddee-4ac1-b6ca-5d28c6971cf7 a sh:PropertyShape;
+    sh:path ds:drugName .
+  
+  ds:drugName a owl:DatatypeProperty;
+    rdfs:label "drugName" .
+  
+  ds:f0e02b82-fa8d-4431-9942-a0a75cc01db1 a sh:PropertyShape;
+    sh:path ds:ingredient .
+  
+  ds:ingredient a owl:DatatypeProperty;
+    rdfs:label "ingredient" .
+  
+  ds:OrangeBook a owl:Class;
+    rdfs:label "OrangeBook" .
+  
+  ds:2c498356-9f63-47dc-b3b0-5f4b5df5fd5a a sh:PropertyShape;
+    sh:path schema:value .
+  
+  ds:61a062b2-9cd3-46ba-a812-702456ac0ea8 a sh:PropertyShape;
+    sh:path schema:propertyID .
+  
+  ds:043d042b-7aa6-4056-94ed-bea502d94cbe a sh:PropertyShape;
+    sh:path fabio:hasDecisionDate .
+  
+  ds:08718dbc-f504-45a2-b849-34e0327b866c a sh:PropertyShape;
+    sh:path schema:datePublished .
+  
+  ds:0f5eb520-abb0-4670-bb9c-8cd8dda5a28c a sh:PropertyShape;
+    sh:path ds:familyCount .
+  
+  ds:familyCount a owl:DatatypeProperty;
+    rdfs:label "familyCount" .
+  
+  ds:1f14513b-66ad-4dad-b42d-3364a4ac6e9d a sh:PropertyShape;
+    sh:path ds:filingStatus .
+  
+  ds:filingStatus a owl:DatatypeProperty;
+    rdfs:label "filingStatus" .
+  
+  ds:2d65d7b8-4f9a-41f0-958d-28b66b7651b3 a sh:PropertyShape;
+    sh:path ds:hasFamilyId .
+  
+  ds:hasFamilyId a owl:DatatypeProperty;
+    rdfs:label "hasFamilyId" .
+  
+  ds:35e00955-35ab-40cf-a8b4-a3d0300fc06b a sh:PropertyShape;
+    sh:path ds:hasFederalSupport .
+  
+  ds:hasFederalSupport a owl:DatatypeProperty;
+    rdfs:label "hasFederalSupport" .
+  
+  ds:36289a72-6c2a-4155-a7b8-1de1b1019724 a sh:PropertyShape;
+    sh:path schema:jurisdiction .
+  
+  ds:3704e28b-48ce-418e-b81d-7cd8e1115e5d a sh:PropertyShape;
+    sh:path schema:citation .
+  
+  ds:4904f4d2-79f9-4e09-9987-0bfc59f2d763 a sh:PropertyShape;
+    sh:path ds:expirationYear .
+  
+  ds:expirationYear a owl:DatatypeProperty;
+    rdfs:label "expirationYear" .
+  
+  ds:49d59cd0-7955-4002-ad05-dc7e215e26d1 a sh:PropertyShape;
+    sh:path schema:funding .
+  
+  ds:4ecba702-47ea-47db-9a9d-33f6fac16a15 a sh:PropertyShape;
+    sh:path ds:hasConceptScore .
+  
+  ds:5a66f27a-05e8-4e05-8182-84e918068b7a a sh:PropertyShape;
+    sh:path ds:filingYear .
+  
+  ds:filingYear a owl:DatatypeProperty;
+    rdfs:label "filingYear" .
+  
+  ds:65ca43d7-1a84-4cef-9744-dcdac2daf83b a sh:PropertyShape;
+    sh:path ds:hasOrangeBookRecord .
+  
+  ds:hasOrangeBookRecord a owl:ObjectProperty;
+    rdfs:label "hasOrangeBookRecord" .
+  
+  ds:6fcb1c32-ebdd-4e0d-baec-cf0856a2bcb5 a sh:PropertyShape;
+    sh:path fabio:hasPublicationYear .
+  
+  ds:77c74c5e-8cf6-41e7-a36a-dfdd07fbfaf4 a sh:PropertyShape;
+    sh:path ds:category .
+  
+  ds:874b3ad9-7b03-4b14-b5d5-94816b3546a1 a sh:PropertyShape;
+    sh:path ds:originalAssignee .
+  
+  ds:originalAssignee a owl:ObjectProperty;
+    rdfs:label "originalAssignee" .
+  
+  ds:87fab537-2be6-4ca0-be70-f03d8c8b767c a sh:PropertyShape;
+    sh:path schema:expires .
+  
+  ds:880b9927-94c9-4622-b9e9-4207a02fc42a a sh:PropertyShape;
+    sh:path ds:priorityDate .
+  
+  ds:priorityDate a owl:DatatypeProperty;
+    rdfs:label "priorityDate" .
+  
+  ds:8d8c67b2-fc24-4b8c-a47c-4ba26d8bdc7c a sh:PropertyShape;
+    sh:path ds:familyMember .
+  
+  ds:familyMember a owl:ObjectProperty;
+    rdfs:label "familyMember" .
+  
+  ds:8e3f0506-0565-4bbf-8c8f-4f1455a9ddb3 a sh:PropertyShape;
+    sh:path ds:applicationNumber .
+  
+  ds:9c4d360d-a06d-4a15-8ec9-0fb06fdaf8b4 a sh:PropertyShape;
+    sh:path schema:copyrightYear .
+  
+  ds:a3f7b1e6-5638-46f2-86ac-a5ad10f59c93 a sh:PropertyShape;
+    sh:path ds:priorityYear .
+  
+  ds:priorityYear a owl:DatatypeProperty;
+    rdfs:label "priorityYear" .
+  
+  ds:a8c96521-4230-45b4-aafc-9e1b433a93c1 a sh:PropertyShape;
+    sh:path schema:citation .
+  
+  ds:a9c6f5f1-b72b-4096-8bf5-cde4f9b4a9b1 a sh:PropertyShape;
+    sh:path ds:filingDate .
+  
+  ds:filingDate a owl:DatatypeProperty;
+    rdfs:label "filingDate" .
+  
+  ds:b2521bb2-2b02-4482-b692-a22d3f9c8e83 a sh:PropertyShape;
+    sh:path ds:currentAssignee .
+  
+  ds:currentAssignee a owl:ObjectProperty;
+    rdfs:label "currentAssignee" .
+  
+  ds:b66e3a38-0de4-4fc0-a648-3e07662a5132 a sh:PropertyShape;
+    sh:path ds:kind .
+  
+  ds:kind a owl:DatatypeProperty;
+    rdfs:label "kind" .
+  
+  ds:b6cbd72a-9854-491e-b3d7-6982d8d46ff3 a sh:PropertyShape;
+    sh:path ds:assignee .
+  
+  ds:assignee a owl:ObjectProperty;
+    rdfs:label "assignee" .
+  
+  ds:c5dfae24-5087-475e-af64-c5b505d7809b a sh:PropertyShape;
+    sh:path ds:legalStatus .
+  
+  ds:legalStatus a owl:DatatypeProperty;
+    rdfs:label "legalStatus" .
+  
+  ds:d8f75bf5-4b04-4094-88d2-a917465709a7 a sh:PropertyShape;
+    sh:path schema:name .
+  
+  ds:d902dffa-90f3-44dc-92c3-aa56db042dc2 a sh:PropertyShape;
+    sh:path schema:abstract .
+  
+  ds:e1a50609-9495-433a-bb98-7116ac765be6 a sh:PropertyShape;
+    sh:path schema:funder .
+  
+  ds:efb7cf82-9cad-4fd5-a6cd-d829959d9063 a sh:PropertyShape;
+    sh:path schema:creator .
+  
+  ds:f2357828-899d-4de6-8eb3-a7f27be4303e a sh:PropertyShape;
+    sh:path ds:hasLegalEvent .
+  
+  ds:hasLegalEvent a owl:ObjectProperty;
+    rdfs:label "hasLegalEvent" .
+  
+  <https://ocid.ontochem.com/Concept> a owl:Class;
+    rdfs:subClassOf skos:Concept;
+    rdfs:label "Ontochem Concept" .
+  
+  ds:inventor a owl:DatatypeProperty;
+    rdfs:label "inventor"@en .
+  
+  ds:hasConcept a owl:ObjectProperty;
+    rdfs:label "hasConcept" .
+  
+  _:40fb436578f9472abe180a1caa2c2db133624 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133625 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133628 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133629 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133630 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133631 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133633 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133635 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133636 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133637 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133638 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133640 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133641 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133644 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133645 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133646 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133647 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133648 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133649 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133650 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133651 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133652 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133653 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133657 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133658 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133659 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133660 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133661 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133663 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133664 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133665 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133666 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133667 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133668 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133672 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133673 a sh:NodeShape .
+  
+  _:40fb436578f9472abe180a1caa2c2db133674 a sh:NodeShape .
+  
+  schema:ScholarlyArticle rdfs:subClassOf schema:CreativeWork .
+  
+  fabio:Preprint rdfs:subClassOf schema:CreativeWork .
+  
+  _:40fb436578f9472abe180a1caa2c2db133626 sh:path schema:identifier .
+  
+  _:40fb436578f9472abe180a1caa2c2db133627 sh:path schema:about .
+  
+  _:40fb436578f9472abe180a1caa2c2db133632 sh:path ds:hasConcept .
+  
+  _:40fb436578f9472abe180a1caa2c2db133634 sh:path schema:about .
+  
+  _:40fb436578f9472abe180a1caa2c2db133639 sh:path schema:status .
+  
+  _:40fb436578f9472abe180a1caa2c2db133642 sh:path schema:about .
+  
+  _:40fb436578f9472abe180a1caa2c2db133643 sh:path schema:about .
+  
+  _:40fb436578f9472abe180a1caa2c2db133654 sh:path fabio:hasPublicationYear .
+  
+  _:40fb436578f9472abe180a1caa2c2db133655 sh:path schema:about .
+  
+  _:40fb436578f9472abe180a1caa2c2db133656 sh:path schema:about .
+  
+  _:40fb436578f9472abe180a1caa2c2db133662 sh:path schema:about .
+  
+  _:40fb436578f9472abe180a1caa2c2db133669 sh:path schema:about .
+  
+  _:40fb436578f9472abe180a1caa2c2db133670 sh:path schema:about .
+  
+  _:40fb436578f9472abe180a1caa2c2db133671 sh:path ds:inventor .
+  
+  ds:26a76bab-a2e8-47ba-82ac-2437e2497351 sh:datatype xsd:string .
+  
+  ds:67f4ee53-9340-4402-9395-6b24a1a0ece5 sh:datatype xsd:string .
+  
+  ds:afe249fc-9a62-47c4-8874-7a6d4da5298e sh:datatype xsd:string .
+  
+  ds:dd04423c-4abe-4bd7-8926-e9618232eb29 sh:datatype xsd:string .
+  
+  ds:177cdfca-5ebf-4b87-8748-e3f9467adf3e sh:datatype xsd:gYear .
+  
+  ds:3a8f91ad-2da2-4d88-8ece-8d6158398d48 sh:datatype xsd:string .
+  
+  ds:5c93d3d0-bc13-4e98-bb29-91ca1e47cbe8 sh:datatype xsd:integer .
+  
+  ds:7a569d56-f35c-4fdd-885e-77ad1d057c3b sh:datatype xsd:gYear .
+  
+  ds:8772ef1b-436a-4f85-b2a9-de54819355b7 sh:datatype xsd:string .
+  
+  ds:8e1ffc5f-5068-48d0-8910-986361607f0a sh:datatype xsd:gYear .
+  
+  ds:b0087595-ca1d-4ebd-82c6-768a0dc8f5eb sh:datatype xsd:string .
+  
+  ds:c53a6c82-824c-4802-918c-b357701cdc12 sh:datatype xsd:string .
+  
+  ds:ca79327f-8708-4c44-bc7f-39427fdd704a sh:datatype xsd:gYear .
+  
+  ds:da5d676c-d6de-46da-af2a-eda695bd3ddd sh:datatype xsd:integer .
+  
+  ds:336d272c-5595-4c40-bf5b-add393f44a6f sh:datatype xsd:string .
+  
+  ds:3cb8214a-78be-4601-a36c-570ae5cce7e6 sh:datatype xsd:string .
+  
+  ds:602bbe8e-4d13-4781-a713-30df2693db56 sh:datatype xsd:string .
+  
+  ds:6264b602-d864-42b9-9abf-6b1c9790ba9c sh:datatype xsd:gYear .
+  
+  ds:7a03bfc1-8842-4d5b-8689-fcd8e227f6d8 sh:datatype xsd:string .
+  
+  ds:e60c118e-97ec-4940-b025-1da58b068eaf sh:datatype xsd:gYear .
+  
+  ds:eb2f375a-c6af-4449-aba4-71316577c90e sh:datatype xsd:string .
+  
+  ds:f90c5870-467d-46fb-9b94-2dfaf6291328 sh:datatype xsd:string .
+  
+  ds:11426a86-70da-4552-a90f-35591fc2308a sh:datatype xsd:string .
+  
+  ds:51a0a21f-c58a-4c5a-b5e8-06c7965808f5 sh:datatype xsd:string .
+  
+  ds:7b5deb18-ddee-4ac1-b6ca-5d28c6971cf7 sh:datatype xsd:string .
+  
+  ds:f0e02b82-fa8d-4431-9942-a0a75cc01db1 sh:datatype xsd:string .
+  
+  ds:2c498356-9f63-47dc-b3b0-5f4b5df5fd5a sh:datatype xsd:string .
+  
+  ds:61a062b2-9cd3-46ba-a812-702456ac0ea8 sh:datatype xsd:string .
+  
+  ds:043d042b-7aa6-4056-94ed-bea502d94cbe sh:datatype xsd:date .
+  
+  ds:08718dbc-f504-45a2-b849-34e0327b866c sh:datatype xsd:date .
+  
+  ds:0f5eb520-abb0-4670-bb9c-8cd8dda5a28c sh:datatype xsd:integer .
+  
+  ds:1f14513b-66ad-4dad-b42d-3364a4ac6e9d sh:datatype xsd:string .
+  
+  ds:2d65d7b8-4f9a-41f0-958d-28b66b7651b3 sh:datatype xsd:string .
+  
+  ds:35e00955-35ab-40cf-a8b4-a3d0300fc06b sh:datatype xsd:string .
+  
+  ds:36289a72-6c2a-4155-a7b8-1de1b1019724 sh:datatype xsd:string .
+  
+  ds:4904f4d2-79f9-4e09-9987-0bfc59f2d763 sh:datatype xsd:gYear .
+  
+  ds:5a66f27a-05e8-4e05-8182-84e918068b7a sh:datatype xsd:gYear .
+  
+  ds:6fcb1c32-ebdd-4e0d-baec-cf0856a2bcb5 sh:datatype xsd:gYear .
+  
+  ds:87fab537-2be6-4ca0-be70-f03d8c8b767c sh:datatype xsd:date .
+  
+  ds:880b9927-94c9-4622-b9e9-4207a02fc42a sh:datatype xsd:date .
+  
+  ds:8e3f0506-0565-4bbf-8c8f-4f1455a9ddb3 sh:datatype xsd:string .
+  
+  ds:9c4d360d-a06d-4a15-8ec9-0fb06fdaf8b4 sh:datatype xsd:gYear .
+  
+  ds:a3f7b1e6-5638-46f2-86ac-a5ad10f59c93 sh:datatype xsd:gYear .
+  
+  ds:a9c6f5f1-b72b-4096-8bf5-cde4f9b4a9b1 sh:datatype xsd:date .
+  
+  ds:b66e3a38-0de4-4fc0-a648-3e07662a5132 sh:datatype xsd:string .
+  
+  ds:c5dfae24-5087-475e-af64-c5b505d7809b sh:datatype xsd:string .
+  
+  ds:d8f75bf5-4b04-4094-88d2-a917465709a7 sh:datatype xsd:string .
+  
+  ds:d902dffa-90f3-44dc-92c3-aa56db042dc2 sh:datatype xsd:string .
+  
+  _:40fb436578f9472abe180a1caa2c2db133626 sh:datatype xsd:string .
+  
+  _:40fb436578f9472abe180a1caa2c2db133639 sh:datatype xsd:string .
+  
+  _:40fb436578f9472abe180a1caa2c2db133654 sh:datatype xsd:gYear .
+  
+  _:40fb436578f9472abe180a1caa2c2db133671 sh:datatype xsd:string .
+  
+  ds:oaCategory rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Open Access categories of a publication" .
+  
+  ds:OpenAccess rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:role rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Role for a dataset author (if present)" .
+  
+  ds:initials rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Initials." .
+  
+  ds:hasAuthor rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:hasAffiliation rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:Authorship rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:measureType rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Type assigned to the outcome measure e.g. ‘primary’, ‘secondary’, etc." .
+  
+  ds:timeFrame rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Details of the timeframe related to the measure." .
+  
+  ds:OutcomeMeasure rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:meshTerm rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:acronym rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "A list of short acronyms the institute is known as (e.g. MRC for the Medical Research Council)" .
+  
+  ds:startYear rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:hasIntervention rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:Intervention rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:studyType rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The type of study associated to the clinical trial e.g. ‘Interventional’, ‘Observational’, etc." .
+  
+  ds:dateInserted rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Date when the record was inserted into Dimensions." .
+  
+  ds:outcome rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:Arm rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:category rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:Category rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:phase rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:hasAltmetricScore rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:AltmetricScore rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:studyMaximumAge rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Maximum age eligible for the study." .
+  
+  ds:investigator rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:endYear rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:medicalCondition rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  <http://id.nlm.nih.gov/mesh/vocab#TopicalDescriptor> rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:studyMinimumAge rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Minimum age eligible for the study." .
+  
+  ds:hasConceptScore rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:ConceptScore rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:registry rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The platform where the clinical trial has been registered, e.g. ‘ClinicalTrials.gov’ or ‘EU-CTR’." .
+  
+  ds:participant rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The actual or estimated target number of participants." .
+  
+  ds:activeYear rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:score rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Concepts describing the main topics of a publication (note: automatically derived from the publication text using machine learning)." .
+  
+  ds:recentCitation rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Number of citations received in the last two years. Does not support emptiness filters." .
+  
+  ds:citedByCount rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Number of citations." .
+  
+  ds:fieldCitationRatio rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Relative citation performance of article when compared to similarly aged articles in its area of research." .
+  
+  ds:relativeCitationRatio rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Relative citation performance of an article when compared to others in its area of research." .
+  
+  ds:Metric rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:armType rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Type of the study arm e.g. ‘Active Comparator’, ‘Experimental’, ‘No intervention’, etc." .
+  
+  ds:statusCodeDescription rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Description of the legal status code." .
+  
+  ds:LegalEvent rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "List of legal status events, covering a variety of entries, procedural steps, and post-grant events." .
+  
+  ds:fundingSection rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The funding section text as found in the source document." .
+  
+  ds:isCitable rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The automated citable document flag, evaluation release." .
+  
+  ds:hasMetric rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:dateOnline rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The publication online date." .
+  
+  ds:datePrint rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The publication print date." .
+  
+  ds:hasOpenAccess rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:citationsCount rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Number of citations." .
+  
+  ds:meshHeading rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Medical Subject Heading terms (as used in PubMed)." .
+  
+  ds:hasAuthorship rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:clinicalTrial rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:hasSupportingGrant rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:acknowledgements rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:dateNormal rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The publication date for the version of record of a document, normalised for partial dates which do not include a month/day value (ie. ‘2020’ converts to ‘2020-01-01’)." .
+  
+  ds:eisbn rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "For supported publication types, the International Standard Book Number (ISBN) of an electronic edition." .
+  
+  ds:classification rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The automated document type classification, evaluation release." .
+  
+  ds:hasSource rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:SourceTitle rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:hasAssociatedGrant rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:hasAssociatedPublication rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:year rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Citing publications, provides the year of citation." .
+  
+  ds:hasRepository rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:License rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:originalTitle rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Title of the grant in its original language." .
+  
+  ds:foaNumber rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The funding opportunity announcement (FOA) number, where available e.g. for grants from the US National Institute of Health (NIH) or from the National Science Foundation (NSF)." .
+  
+  ds:grantNumber rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Grant identifier, as provided by the source (e.g., funder, aggregator) the grant was derived from." .
+  
+  ds:support rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:originalAbstract rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Abstract of the grant in its original language." .
+  
+  ds:postedOn rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The date the document was issued." .
+  
+  ds:PolicyDocument rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:armGroupName rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:interventionType rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:sourceType rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The source type: one of book_series, proceeding, journal, preprint_platform (4 in total)." .
+  
+  ds:sjr rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "SJR indicator (SCImago Journal Rank). This indicator measures both the number of citations received by a journal and the importance or prestige of the journals where the citations come from." .
+  
+  ds:snip rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "SNIP indicator (source normalized impact per paper). This indicator measures the average citation impact of the publications of a journal." .
+  
+  ds:issnPrint rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Print ISSN for the source." .
+  
+  ds:journal rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Source’s association with independent groupings of journals outside of Dimensions, e.g. ‘ERA 2015’ or ‘Norwegian register level 1’." .
+  
+  ds:locationName rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:interventionModel rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:allocation rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:masking rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:primaryPurpose rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:firstGrantYear rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:publicationsCount rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Total publications count." .
+  
+  ds:firstPublicationYear rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:lastGrantYear rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:lastPublicationYear rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:grantsCount rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Total grants count." .
+  
+  ds:related rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:organizationType rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Type of an organization Eg. “Company”, “Education”, “Government” etc." .
+  
+  ds:applicantFullName rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:applicationNumber rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Patent application number" .
+  
+  ds:drugName rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:ingredient rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:OrangeBook rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:familyCount rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The total count of patents in the same family." .
+  
+  ds:filingStatus rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Filing Status of the patent e.g. ‘Application’ or ‘Grant’." .
+  
+  ds:hasFamilyId rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Identifier of the corresponding patent family." .
+  
+  ds:hasFederalSupport rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:expirationYear rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Year when the patent expires." .
+  
+  ds:filingYear rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The year the patent was filed." .
+  
+  ds:hasOrangeBookRecord rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:originalAssignee rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:priorityDate rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The earliest filing date in a family of patent applications." .
+  
+  ds:familyMember rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:priorityYear rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The filing year of the earliest application of which priority is claimed." .
+  
+  ds:filingDate rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Date when the patent was filed." .
+  
+  ds:currentAssignee rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:kind rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "Kind of the patent - varies on jurisdiction and type of patent. Eg: A1." .
+  
+  ds:assignee rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:legalStatus rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "The legal status of the patent, e.g. ‘Granted’, ‘Active’, ‘Abandoned’ etc." .
+  
+  ds:hasLegalEvent rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  <https://ocid.ontochem.com/Concept> rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:inventor rdfs:isDefinedBy <https://dimensions.ai/ontology/>;
+    rdfs:comment "List of names of the people who invented the patent."@en .
+  
+  ds:hasConcept rdfs:isDefinedBy <https://dimensions.ai/ontology/> .
+  
+  ds:b1113821-ec82-49d8-9646-28f0630d9785 sh:class schema:Person .
+  
+  ds:decbf666-b4be-442e-ade3-94033bb73866 sh:class schema:Organization .
+  
+  ds:06dcef22-e023-4100-bc54-bd03282d329e sh:class schema:Organization .
+  
+  ds:262200cf-3b19-4e36-9470-1b577ef63c24 sh:class ds:Intervention .
+  
+  ds:36b42a67-edc2-42b1-b952-a03b8bb1d4db sh:class schema:Person .
+  
+  ds:414825bf-b295-44f8-a9ba-dd152b4fa5be sh:class schema:Organization .
+  
+  ds:57d69a1d-f909-4084-b7de-6c41721acf42 sh:class ds:OutcomeMeasure .
+  
+  ds:6660cead-4ea3-4b86-957c-b7ccd7675400 sh:class ds:Arm .
+  
+  ds:66c098f4-d750-4878-91cd-3d67c709f4eb sh:class ds:Category .
+  
+  ds:7e534fdf-4f84-4426-8a77-b83a509839f7 sh:class ds:AltmetricScore .
+  
+  ds:87abdb1c-2460-421b-aee9-5b8aa2af3349 sh:class schema:MedicalTrialDesign .
+  
+  ds:87b861fd-12f6-4ae7-848b-e61191c7b5aa sh:class schema:Person .
+  
+  ds:a614d59e-f136-4bdd-9902-d2cba421ccd8 sh:class schema:CreativeWork .
+  
+  ds:d108856f-da40-43f3-a337-0f8deb313d79 sh:class <http://id.nlm.nih.gov/mesh/vocab#TopicalDescriptor> .
+  
+  ds:d8161480-4d82-45d5-9daa-32f7d162b111 sh:class ds:ConceptScore .
+  
+  ds:dac3813c-8161-4590-acf9-8712f68229b9 sh:class schema:MonetaryGrant .
+  
+  ds:dd9b5456-816f-4a64-81ca-e3a58e4704b6 sh:class schema:MedicalCondition .
+  
+  ds:0dcd8f8d-4756-453f-8034-e2b5fc63b40f sh:class schema:Event .
+  
+  ds:0f997d8f-7070-48a6-bcb8-2cd0a85b58be sh:class schema:Person .
+  
+  ds:308fc6a3-b5a4-4054-8053-8dbf26593c5f sh:class schema:Organization .
+  
+  ds:3950cce6-1132-4ae4-ba94-b36db3adf84c sh:class schema:CreativeWork .
+  
+  ds:4041c587-bd38-4284-ae0d-7a5fc4fa9c7e sh:class ds:Metric .
+  
+  ds:57a40b4c-4384-4f8a-912a-4bfdf71b10fd sh:class schema:MonetaryGrant .
+  
+  ds:604568aa-46ff-433a-84e0-00028c617fca sh:class schema:Person .
+  
+  ds:60981789-6d9d-44e8-9029-f76120e80ef1 sh:class schema:Organization .
+  
+  ds:6f663680-d97a-43e5-866d-7e89cc8ba57a sh:class ds:AltmetricScore .
+  
+  ds:7a863272-db5c-41a8-a11b-4c276801aded sh:class ds:OpenAccess .
+  
+  ds:812d52b2-aa60-4d30-a882-b1226504de4d sh:class schema:CreativeWork .
+  
+  ds:aa49fbfa-2a0d-4dfe-a816-a67fc4154d9d sh:class ds:Authorship .
+  
+  ds:ba218280-c81c-439a-b73d-796c3f1c2eef sh:class ds:Category .
+  
+  ds:c1191b56-a4fc-44e1-96c7-35b604a7d971 sh:class schema:MedicalStudy .
+  
+  ds:c584e5d5-2ec0-49d1-bd00-fcaa1b53e59c sh:class schema:MonetaryGrant .
+  
+  ds:cb094069-00f6-4576-a9ce-81767cc742f9 sh:class <http://id.nlm.nih.gov/mesh/vocab#TopicalDescriptor> .
+  
+  ds:ecca3077-8e1a-4ddb-8555-e1633d5e0627 sh:class schema:Organization .
+  
+  ds:ef7009ef-4912-4ca9-b689-c3c479ebb785 sh:class ds:SourceTitle .
+  
+  ds:f4f91e63-5ebe-40ba-aa59-eba0f0509f8e sh:class ds:ConceptScore .
+  
+  ds:2df9ba09-f589-4333-81f1-83e2258fe4c9 sh:class ds:Authorship .
+  
+  ds:401e29ff-a8da-49b4-8aaf-4f46fa07af76 sh:class schema:Person .
+  
+  ds:44b456f6-36bd-46b4-ab5f-4f0d9a933f2e sh:class schema:MonetaryGrant .
+  
+  ds:608c3747-6dd7-4249-a838-55b62c2d5c15 sh:class schema:CreativeWork .
+  
+  ds:7140978f-f7e0-4fc6-aa77-cbd91a408841 sh:class ds:ConceptScore .
+  
+  ds:9e544ecc-c8c3-43d2-8baa-2e4a6a90fc86 sh:class fabio:DataRepository .
+  
+  ds:dadb59b5-9dc4-4c4b-a279-756015dad1bf sh:class schema:Organization .
+  
+  ds:e49cf4f1-52f8-4fd8-b0a7-2ed0652db517 sh:class ds:License .
+  
+  ds:e84dd6ea-3b94-46f2-9e8c-c9effa9a9288 sh:class ds:Category .
+  
+  ds:0e2c0988-ae04-4342-a5dd-cfcf5788b30c sh:class schema:Organization .
+  
+  ds:74287140-5c04-4509-af21-04312613a927 sh:class ds:Category .
+  
+  ds:9eb472ac-70dd-460d-9c90-b04c8e5fec7b sh:class schema:CreativeWork .
+  
+  ds:a78a63b4-c140-40fd-a725-f77f542c86cc sh:class schema:Person .
+  
+  ds:ac735fcc-2a4a-44f3-b18e-5a027205e3d8 sh:class ds:ConceptScore .
+  
+  ds:db966450-3a84-4f9b-86ea-427ce18c0d21 sh:class schema:Organization .
+  
+  ds:f91ba616-82ec-48a3-a1d5-ac094c9b57ae sh:class schema:Person .
+  
+  ds:fbb61b51-e482-42fc-b94d-489618b5d233 sh:class schema:MonetaryAmount .
+  
+  ds:1560e682-d104-449c-a724-1302d6d5aa3e sh:class schema:Organization .
+  
+  ds:246d3622-2855-44b1-822e-31af8eef3a73 sh:class schema:PropertyValue .
+  
+  ds:ad4115f8-cd96-4aaf-86fd-34847a759bb4 sh:class ds:Authorship .
+  
+  ds:bca3a498-59db-402d-9933-d0e315827e2f sh:class ds:Category .
+  
+  ds:cf42c85a-757e-46eb-b24f-bd66f3f3dcff sh:class schema:Organization .
+  
+  ds:fba1dc20-cd21-4df7-b959-21b4c19dd151 sh:class schema:Organization .
+  
+  ds:ffb865ae-6e0a-47bf-a0e7-c9ee74f0870d sh:class schema:Organization .
+  
+  ds:3ea5314d-561e-4a25-9559-dce9902800e9 sh:class schema:CreativeWork .
+  
+  ds:7a07e854-2cb7-4c75-b2e5-49bada1d23d6 sh:class ds:Category .
+  
+  ds:9ef5210f-87a0-411b-9f30-48c595acbc98 sh:class schema:Organization .
+  
+  ds:f50998d2-a249-452f-b5bb-584f9ea4f0db sh:class ds:ConceptScore .
+  
+  ds:022e449c-9d37-4e66-ae4e-e4e78ba68305 sh:class schema:PropertyValue .
+  
+  ds:2ec00541-a1ab-4f9a-9b1e-b39f662200a0 sh:class schema:Organization .
+  
+  ds:3d9c2fea-2044-4395-b32a-4ea86a23cbe6 sh:class schema:Organization .
+  
+  ds:50d14d1d-6048-4540-854e-c3dd3ea56c4b sh:class schema:Organization .
+  
+  ds:04a841e8-a31b-4af2-9df7-0eae677a4077 sh:class schema:Organization .
+  
+  ds:752e98bb-f105-440c-aae2-df526bdecc50 sh:class schema:Organization .
+  
+  ds:c26df17e-4ce6-4798-8c98-120ce5351c0a sh:class schema:PostalAddress .
+  
+  ds:d98b2b8a-ddf2-42e5-8db2-9ad52dc740b8 sh:class schema:PropertyValue .
+  
+  ds:dd95b676-1eab-471a-86a8-dee340f20814 sh:class schema:Organization .
+  
+  ds:3704e28b-48ce-418e-b81d-7cd8e1115e5d sh:class fabio:Patent .
+  
+  ds:49d59cd0-7955-4002-ad05-dc7e215e26d1 sh:class schema:MonetaryGrant .
+  
+  ds:4ecba702-47ea-47db-9a9d-33f6fac16a15 sh:class ds:ConceptScore .
+  
+  ds:65ca43d7-1a84-4cef-9744-dcdac2daf83b sh:class ds:OrangeBook .
+  
+  ds:77c74c5e-8cf6-41e7-a36a-dfdd07fbfaf4 sh:class ds:Category .
+  
+  ds:874b3ad9-7b03-4b14-b5d5-94816b3546a1 sh:class schema:Organization .
+  
+  ds:8d8c67b2-fc24-4b8c-a47c-4ba26d8bdc7c sh:class fabio:Patent .
+  
+  ds:a8c96521-4230-45b4-aafc-9e1b433a93c1 sh:class schema:CreativeWork .
+  
+  ds:b2521bb2-2b02-4482-b692-a22d3f9c8e83 sh:class schema:Organization .
+  
+  ds:b6cbd72a-9854-491e-b3d7-6982d8d46ff3 sh:class schema:Organization .
+  
+  ds:e1a50609-9495-433a-bb98-7116ac765be6 sh:class schema:Organization .
+  
+  ds:efb7cf82-9cad-4fd5-a6cd-d829959d9063 sh:class schema:Person .
+  
+  ds:f2357828-899d-4de6-8eb3-a7f27be4303e sh:class ds:LegalEvent .
+  
+  _:40fb436578f9472abe180a1caa2c2db133627 sh:class skos:Concept .
+  
+  _:40fb436578f9472abe180a1caa2c2db133632 sh:class skos:Concept .
+  
+  _:40fb436578f9472abe180a1caa2c2db133634 sh:class skos:Concept .
+  
+  _:40fb436578f9472abe180a1caa2c2db133642 sh:class skos:Concept .
+  
+  _:40fb436578f9472abe180a1caa2c2db133643 sh:class <https://ocid.ontochem.com/Concept> .
+  
+  _:40fb436578f9472abe180a1caa2c2db133655 sh:class <https://ocid.ontochem.com/Concept> .
+  
+  _:40fb436578f9472abe180a1caa2c2db133656 sh:class skos:Concept .
+  
+  _:40fb436578f9472abe180a1caa2c2db133662 sh:class skos:Concept .
+  
+  _:40fb436578f9472abe180a1caa2c2db133669 sh:class skos:Concept .
+  
+  _:40fb436578f9472abe180a1caa2c2db133670 sh:class <https://ocid.ontochem.com/Concept> .
+  
+  _:40fb436578f9472abe180a1caa2c2db133624 sh:targetClass schema:Book .
+  
+  _:40fb436578f9472abe180a1caa2c2db133625 sh:targetClass schema:MedicalStudy;
+    sh:property ds:06dcef22-e023-4100-bc54-bd03282d329e, ds:0825ccf2-6d90-4341-81b5-4b50c1306805,
+      ds:1658da88-b482-44b4-bf42-4dac5fd3550b, ds:1b321f61-6e63-412a-915c-0317846b456e,
+      ds:201be1b3-a62b-4a02-a6c0-8210320fe54b, ds:223387b1-cab6-414c-8eaa-8a92d4d1e66a,
+      ds:262200cf-3b19-4e36-9470-1b577ef63c24, ds:31ceefa7-1fd4-4119-9c89-df6deef0974a,
+      ds:36b42a67-edc2-42b1-b952-a03b8bb1d4db, ds:38311193-25df-4475-a600-a55e0bcbb17b,
+      ds:3e49eae7-333f-4106-ba9a-b85b0ff07bee, ds:414825bf-b295-44f8-a9ba-dd152b4fa5be,
+      ds:57d69a1d-f909-4084-b7de-6c41721acf42, ds:5901444e-c474-4d2e-a68e-3bf4a0771ee5,
+      ds:657cadbf-6d77-4c9c-aae4-e36c5879b1bf, ds:6660cead-4ea3-4b86-957c-b7ccd7675400,
+      ds:66c098f4-d750-4878-91cd-3d67c709f4eb, ds:7aa34e68-6aa0-4937-af93-d43c2c29a5db,
+      ds:7e534fdf-4f84-4426-8a77-b83a509839f7, ds:7e7aaa2d-9002-4c64-adb1-56ad04f7af32,
+      ds:80991f57-1e7e-4a75-a4cd-31321fefcb8f, ds:81a8dbc6-c299-475b-ab30-864989e040c2,
+      ds:87abdb1c-2460-421b-aee9-5b8aa2af3349, ds:87b861fd-12f6-4ae7-848b-e61191c7b5aa,
+      ds:88397f6f-77b3-447d-af3b-10ebd15deb75, ds:8f226942-385c-4549-858b-b509a12e4ad9,
+      ds:a614d59e-f136-4bdd-9902-d2cba421ccd8, ds:aa3f123b-db58-49cf-8699-8155a6f872c3,
+      ds:d108856f-da40-43f3-a337-0f8deb313d79, ds:d80407f1-2626-4324-aca7-71f2266b44e3,
+      ds:d8161480-4d82-45d5-9daa-32f7d162b111, ds:dac3813c-8161-4590-acf9-8712f68229b9,
+      ds:dd9b5456-816f-4a64-81ca-e3a58e4704b6, ds:f32ab153-1022-47e9-bd4b-07760506db80,
+      ds:f7663706-ac64-483a-a3f3-6e80a47b1675, ds:fab14cea-5a77-44e7-9d73-9a9dac381cd5,
+      _:40fb436578f9472abe180a1caa2c2db133626, _:40fb436578f9472abe180a1caa2c2db133627 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133628 sh:targetClass ds:OrangeBook;
+    sh:property ds:11426a86-70da-4552-a90f-35591fc2308a, ds:51a0a21f-c58a-4c5a-b5e8-06c7965808f5,
+      ds:7b5deb18-ddee-4ac1-b6ca-5d28c6971cf7, ds:f0e02b82-fa8d-4431-9942-a0a75cc01db1 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133629 sh:targetClass schema:PostalAddress;
+    sh:property ds:56dfe43f-0033-49c0-8c84-2f194b2e1c37, ds:6737ed3e-6f67-4c22-9d88-702197b46110,
+      ds:884dde87-b50e-47c7-9ef6-8cba3155827e, ds:8a808692-858d-469f-a17c-1e8672056091,
+      ds:95e9dc52-349b-4c46-9ac5-7cae974e7994, ds:ad87feb7-fc12-4dbe-92d1-9edf8d3a5abe,
+      ds:dddad7f3-b80e-4bdf-b415-86ca68e42407 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133630 sh:targetClass ds:OutcomeMeasure;
+    sh:property ds:21ec4ef0-9bda-4ac6-b3f8-b913d43706dd, ds:9d5b00ba-06a4-4487-939b-27f751221ff3,
+      ds:eb63c7df-efa3-4480-a89a-a1cbf55497e1 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133631 sh:targetClass ds:ConceptScore;
+    sh:property ds:57815f54-0645-492c-9338-8699b6618e33, ds:a312a114-b9c8-4fbb-9b01-262a3357e7aa,
+      _:40fb436578f9472abe180a1caa2c2db133632 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133633 sh:targetClass ds:PolicyDocument;
+    sh:property ds:0d8e277b-4eef-4219-b43a-829ebf2f6b0f, ds:351728e9-9f3c-417f-a7b9-66547acb2d3f,
+      ds:3ea5314d-561e-4a25-9559-dce9902800e9, ds:41352c35-eab9-4081-a25a-2f25e4c24270,
+      ds:4284c938-afed-4ed5-ba60-c460fb927d71, ds:59e145ca-bfff-448e-9318-89088cdfbf11,
+      ds:7177adb6-ecfa-4152-9399-5a2c975a0950, ds:7a07e854-2cb7-4c75-b2e5-49bada1d23d6,
+      ds:9ef5210f-87a0-411b-9f30-48c595acbc98, ds:b43af381-3d1a-4d04-aabe-230a53748c25,
+      ds:f50998d2-a249-452f-b5bb-584f9ea4f0db, ds:f98758f0-07c6-4269-8eae-53dfe84ae086,
+      _:40fb436578f9472abe180a1caa2c2db133634 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133635 sh:targetClass ds:SourceTitle;
+    sh:property ds:0827082a-a7fd-4c1f-a9f5-d1dc966b9161, ds:1fbe89ef-13eb-4dca-a616-8eda549555be,
+      ds:20b98e98-8015-49c6-90e5-cc991871ae7f, ds:2676cb18-86f3-4612-83ba-7597cd888d9b,
+      ds:31888854-48a6-4276-b7d4-11d01c31af26, ds:3a318f0a-12d5-4fbd-a3a3-184d73686b09,
+      ds:5b9cb945-7339-44a9-8892-57c2ee9bdb5d, ds:72a0166a-b8a4-490a-9f86-2256edddc1dd,
+      ds:88de557b-29d9-458a-9249-ed0b63b5e1a8, ds:c5ffb531-79d2-46c1-ba08-8ebf27ebd6ac .
+  
+  _:40fb436578f9472abe180a1caa2c2db133636 sh:targetClass ds:Arm;
+    sh:property ds:09990bbb-5ee8-4b5e-b19e-92ad4ffa2ee0, ds:61fe90b8-ab97-4607-ab24-ea076437354f,
+      ds:ab66df4f-7c96-4b76-8c1c-4bc45e0b5ee2 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133637 sh:targetClass fabio:DataRepository;
+    sh:property ds:149eb348-706a-44da-b1a7-e19986ddbb72, ds:dbd20bc5-fd92-4185-9ae5-5d6b06f73dde .
+  
+  _:40fb436578f9472abe180a1caa2c2db133638 sh:targetClass schema:Organization;
+    sh:property ds:04a841e8-a31b-4af2-9df7-0eae677a4077, ds:336d272c-5595-4c40-bf5b-add393f44a6f,
+      ds:3cb8214a-78be-4601-a36c-570ae5cce7e6, ds:602bbe8e-4d13-4781-a713-30df2693db56,
+      ds:6264b602-d864-42b9-9abf-6b1c9790ba9c, ds:752e98bb-f105-440c-aae2-df526bdecc50,
+      ds:7a03bfc1-8842-4d5b-8689-fcd8e227f6d8, ds:c26df17e-4ce6-4798-8c98-120ce5351c0a,
+      ds:d98b2b8a-ddf2-42e5-8db2-9ad52dc740b8, ds:dd95b676-1eab-471a-86a8-dee340f20814,
+      ds:e60c118e-97ec-4940-b025-1da58b068eaf, ds:eb2f375a-c6af-4449-aba4-71316577c90e,
+      ds:f90c5870-467d-46fb-9b94-2dfaf6291328, _:40fb436578f9472abe180a1caa2c2db133639 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133640 sh:targetClass schema:CreativeWork .
+  
+  _:40fb436578f9472abe180a1caa2c2db133641 sh:targetClass schema:MonetaryGrant;
+    sh:property ds:0e2c0988-ae04-4342-a5dd-cfcf5788b30c, ds:0f3a005e-c225-4700-a47d-43304488f743,
+      ds:23f6a536-73fc-4259-abff-ec9a6966d84c, ds:3d0da415-26e9-4579-b15c-ee5b99691e57,
+      ds:460602e7-012e-4544-8e2f-ece2f517146e, ds:5d696772-c83b-4899-878a-d64ab1288629,
+      ds:64a8ddca-da69-431e-9c90-36c5f1b945b1, ds:6a4112ec-2383-4ab1-8873-ae1b3877373b,
+      ds:72dafa49-ea22-48b9-b263-2beb97e5085c, ds:74287140-5c04-4509-af21-04312613a927,
+      ds:866142a8-27bb-4879-a605-057ea1fe2aec, ds:9229f9bb-c6e5-4d6c-b106-5b284fcb3593,
+      ds:9eb472ac-70dd-460d-9c90-b04c8e5fec7b, ds:a78a63b4-c140-40fd-a725-f77f542c86cc,
+      ds:ac735fcc-2a4a-44f3-b18e-5a027205e3d8, ds:bc853394-b4e9-49d6-9e1c-6c67f88d4e65,
+      ds:bcf99981-1fad-434c-8745-031b0205e3d9, ds:ced7ec0b-ee6c-4476-938d-2063109755f2,
+      ds:d8cbf0a7-6112-485d-ad5d-d055ec916176, ds:db966450-3a84-4f9b-86ea-427ce18c0d21,
+      ds:f91ba616-82ec-48a3-a1d5-ac094c9b57ae, ds:fbb61b51-e482-42fc-b94d-489618b5d233,
+      _:40fb436578f9472abe180a1caa2c2db133642, _:40fb436578f9472abe180a1caa2c2db133643 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133644 sh:targetClass ds:Intervention;
+    sh:property ds:0215f58d-01be-480c-b0d2-cb7a1cc4e3f3, ds:251fa764-d683-4d42-a4b6-2493d887b0db,
+      ds:72257f8f-6bd3-457b-b233-fb85f7e97b27, ds:a1776f56-9463-4d06-ae46-1c5fa4cf78a0,
+      ds:c804a50b-120a-43a5-9e1b-153ba8de16d2 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133645 sh:targetClass schema:PublicationEvent .
+  
+  _:40fb436578f9472abe180a1caa2c2db133646 sh:targetClass schema:MedicalCondition;
+    sh:property ds:cbcc8377-14e3-4f3a-a20e-50c5a2ec71f9 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133647 sh:targetClass ds:OpenAccess;
+    sh:property ds:2c8bccb4-fa08-4973-9888-e9c37b1f1d68 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133648 sh:targetClass ds:AltmetricScore;
+    sh:property ds:72ac6c93-9c62-4881-bad5-7e4dcc59a72f .
+  
+  _:40fb436578f9472abe180a1caa2c2db133649 sh:targetClass schema:MonetaryAmount;
+    sh:property ds:6cfbee86-f196-43d8-924a-3d684506b910, ds:925ede9e-f6e9-4e3f-bac7-5b071ddcd955 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133650 sh:targetClass ds:LegalEvent;
+    sh:property ds:08db3958-9700-4584-b5f6-081ceadb8401, ds:1ded354d-ac32-44f1-879e-3789b566aadd,
+      ds:80d1278c-5fde-4bbd-ba1c-ebf60a4626c7, ds:9d35b528-5244-4fba-9007-5219c6fb663c,
+      ds:b05a50fe-a8b7-4fb5-bf49-c410a7eff134 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133651 sh:targetClass schema:Report;
+    sh:property ds:02fc4298-80cf-4d0c-bfe5-b86fe3acb1f3, ds:04f7675a-ee95-416e-8af3-12cb9800db7e,
+      ds:1560e682-d104-449c-a724-1302d6d5aa3e, ds:246d3622-2855-44b1-822e-31af8eef3a73,
+      ds:4aed2bfd-4b74-4091-9420-3aa7460b8326, ds:5c451a25-5daf-4aad-b303-9cc7895eb52d,
+      ds:62e7fae0-eb5d-4065-aa9d-5e335b9e2974, ds:83aa4001-60ff-46fc-8a77-ce0d070ab809,
+      ds:a025d2c9-deac-452f-97ee-ad625f1930fd, ds:ad4115f8-cd96-4aaf-86fd-34847a759bb4,
+      ds:bca3a498-59db-402d-9933-d0e315827e2f, ds:cf42c85a-757e-46eb-b24f-bd66f3f3dcff,
+      ds:d58e8fc5-4e2d-436f-a0de-1a4876ff128b, ds:e625e0e0-5fb4-4d5b-88a6-fb3ad27261ed,
+      ds:fba1dc20-cd21-4df7-b959-21b4c19dd151, ds:ffb865ae-6e0a-47bf-a0e7-c9ee74f0870d .
+  
+  _:40fb436578f9472abe180a1caa2c2db133652 sh:targetClass ds:Authorship;
+    sh:property ds:228ad902-0343-49ee-bffe-21fe578016b5, ds:8b09e22c-d8cf-4299-a6aa-b3d1f271fa56,
+      ds:92ed8bdd-4533-4e05-ab9c-3007c1a6f19b, ds:a0d42416-e85b-4221-a4a8-d33d6628d35a,
+      ds:a1af6ed7-14ec-4b4d-8e16-66efbef66479, ds:b1113821-ec82-49d8-9646-28f0630d9785,
+      ds:decbf666-b4be-442e-ade3-94033bb73866, ds:f9aeea4f-2a55-4400-bf4c-d16aff476551 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133653 sh:targetClass schema:CreativeWork;
+    sh:property ds:0dcd8f8d-4756-453f-8034-e2b5fc63b40f, ds:0f997d8f-7070-48a6-bcb8-2cd0a85b58be,
+      ds:1002bddb-d051-44ba-8a66-9bda852e23a5, ds:18569da4-abbf-43a7-890a-e70edc7fb4d0,
+      ds:18e6e30b-05d2-41bb-93b1-44a8defc8c65, ds:28396802-9206-478b-b793-803c511618d9,
+      ds:2c37e4ec-bd91-4c69-b9f9-1ffed738814c, ds:308fc6a3-b5a4-4054-8053-8dbf26593c5f,
+      ds:3799d1f0-89ea-4dbc-96ba-e4ffa730c4d3, ds:3950cce6-1132-4ae4-ba94-b36db3adf84c,
+      ds:3cd93048-3359-4dba-b43f-85c288a8797f, ds:3e46dc8c-305e-4f05-a632-2fba21cce19a,
+      ds:3f4dc8fd-c616-42dd-86cb-d56330e2c77a, ds:3f5a6f6c-6ea3-403d-8404-1e96f8bb72e2,
+      ds:4041c587-bd38-4284-ae0d-7a5fc4fa9c7e, ds:40f4b3e8-ba6c-4939-ad02-1a4496204956,
+      ds:48711db3-48de-4b1b-bdbc-6696f28f9f45, ds:48b38e56-08ab-4684-b53c-ab68a07cab61,
+      ds:4c4ad818-e486-4411-8bd2-b36a1e2b266b, ds:4f442d54-e803-4004-bc08-23a5024ec7c9,
+      ds:57a40b4c-4384-4f8a-912a-4bfdf71b10fd, ds:604568aa-46ff-433a-84e0-00028c617fca,
+      ds:60981789-6d9d-44e8-9029-f76120e80ef1, ds:6f663680-d97a-43e5-866d-7e89cc8ba57a,
+      ds:7a863272-db5c-41a8-a11b-4c276801aded, ds:80693f21-7af9-4c8f-97d3-7b4cab9c9d46,
+      ds:812d52b2-aa60-4d30-a882-b1226504de4d, ds:95b65d13-29fc-45e5-87bf-22dbc594b604,
+      ds:a0932f04-6dcb-41c1-aff1-6ed76ca50d80, ds:aa49fbfa-2a0d-4dfe-a816-a67fc4154d9d,
+      ds:adc84b9c-f53e-4551-9f77-9a337f70c61a, ds:b57681d2-ddda-483f-93bf-99fb4b4d5a98,
+      ds:b766f850-cfc3-41b5-95cf-66e16701f4fc, ds:ba218280-c81c-439a-b73d-796c3f1c2eef,
+      ds:c1191b56-a4fc-44e1-96c7-35b604a7d971, ds:c584e5d5-2ec0-49d1-bd00-fcaa1b53e59c,
+      ds:c58b7043-5e1e-4b9d-a77a-16d02dea19c4, ds:cb094069-00f6-4576-a9ce-81767cc742f9,
+      ds:cda635e8-95d5-43fc-9b26-60f998475d10, ds:dc384db7-c8f3-4963-adfc-d07dba79fcf1,
+      ds:ecca3077-8e1a-4ddb-8555-e1633d5e0627, ds:edff1f2c-f281-4d36-b351-de51ef21312f,
+      ds:eedf0d53-a732-4853-8aba-0dd7142a3bd8, ds:ef7009ef-4912-4ca9-b689-c3c479ebb785,
+      ds:f4f91e63-5ebe-40ba-aa59-eba0f0509f8e, _:40fb436578f9472abe180a1caa2c2db133654,
+      _:40fb436578f9472abe180a1caa2c2db133655, _:40fb436578f9472abe180a1caa2c2db133656 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133657 sh:targetClass schema:PropertyValue;
+    sh:property ds:2c498356-9f63-47dc-b3b0-5f4b5df5fd5a, ds:61a062b2-9cd3-46ba-a812-702456ac0ea8 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133658 sh:targetClass schema:Grant .
+  
+  _:40fb436578f9472abe180a1caa2c2db133659 sh:targetClass schema:Event;
+    sh:property ds:4ea9cd43-b26f-470e-8d44-35db551c7007, ds:838a2ac6-95a0-48cc-9a59-79fd7662d15f .
+  
+  _:40fb436578f9472abe180a1caa2c2db133660 sh:targetClass skos:Concept;
+    sh:property ds:91d72fdb-d9a0-455a-9278-c0b91b01115e .
+  
+  _:40fb436578f9472abe180a1caa2c2db133661 sh:targetClass schema:Dataset;
+    sh:property ds:10d44c2d-bff6-47f7-80b7-f96b2c124329, ds:179a955f-8730-4fee-950d-d3422d5fa116,
+      ds:2a79836e-762a-4c9f-90b9-39bbccff9a75, ds:2df9ba09-f589-4333-81f1-83e2258fe4c9,
+      ds:400162d1-691f-47b8-89c5-3da8013d5df6, ds:401e29ff-a8da-49b4-8aaf-4f46fa07af76,
+      ds:44b456f6-36bd-46b4-ab5f-4f0d9a933f2e, ds:608c3747-6dd7-4249-a838-55b62c2d5c15,
+      ds:7140978f-f7e0-4fc6-aa77-cbd91a408841, ds:760d40ff-84d7-431a-9c7b-0b470071034d,
+      ds:96feb9e3-ee14-459d-bfca-b178da7ae20d, ds:9e544ecc-c8c3-43d2-8baa-2e4a6a90fc86,
+      ds:b1ddb92f-1d3e-46d7-8848-fc00b7f16dc6, ds:d2d26912-ee97-4e0c-a4c2-e4383b19e7e2,
+      ds:dadb59b5-9dc4-4c4b-a279-756015dad1bf, ds:e49cf4f1-52f8-4fd8-b0a7-2ed0652db517,
+      ds:e84dd6ea-3b94-46f2-9e8c-c9effa9a9288, _:40fb436578f9472abe180a1caa2c2db133662 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133663 sh:targetClass schema:Person .
+  
+  _:40fb436578f9472abe180a1caa2c2db133664 sh:targetClass ds:Metric;
+    sh:property ds:2e7f5f32-16ef-425e-b63a-5050ab52a73a, ds:3919233b-d67c-4acf-a24d-5d4fc72bfc3e,
+      ds:6bb7e9e9-f7da-4d62-bfff-387ffb8a7783, ds:7015ea41-3fd6-46b8-a063-0a24c96a701b .
+  
+  _:40fb436578f9472abe180a1caa2c2db133665 sh:targetClass schema:Chapter .
+  
+  _:40fb436578f9472abe180a1caa2c2db133666 sh:targetClass schema:MedicalTrialDesign;
+    sh:property ds:26a76bab-a2e8-47ba-82ac-2437e2497351, ds:67f4ee53-9340-4402-9395-6b24a1a0ece5,
+      ds:afe249fc-9a62-47c4-8874-7a6d4da5298e, ds:dd04423c-4abe-4bd7-8926-e9618232eb29 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133667 sh:targetClass schema:ScholarlyArticle .
+  
+  _:40fb436578f9472abe180a1caa2c2db133668 sh:targetClass fabio:Patent;
+    sh:property ds:043d042b-7aa6-4056-94ed-bea502d94cbe, ds:08718dbc-f504-45a2-b849-34e0327b866c,
+      ds:0f5eb520-abb0-4670-bb9c-8cd8dda5a28c, ds:1f14513b-66ad-4dad-b42d-3364a4ac6e9d,
+      ds:2d65d7b8-4f9a-41f0-958d-28b66b7651b3, ds:35e00955-35ab-40cf-a8b4-a3d0300fc06b,
+      ds:36289a72-6c2a-4155-a7b8-1de1b1019724, ds:3704e28b-48ce-418e-b81d-7cd8e1115e5d,
+      ds:4904f4d2-79f9-4e09-9987-0bfc59f2d763, ds:49d59cd0-7955-4002-ad05-dc7e215e26d1,
+      ds:4ecba702-47ea-47db-9a9d-33f6fac16a15, ds:5a66f27a-05e8-4e05-8182-84e918068b7a,
+      ds:65ca43d7-1a84-4cef-9744-dcdac2daf83b, ds:6fcb1c32-ebdd-4e0d-baec-cf0856a2bcb5,
+      ds:77c74c5e-8cf6-41e7-a36a-dfdd07fbfaf4, ds:874b3ad9-7b03-4b14-b5d5-94816b3546a1,
+      ds:87fab537-2be6-4ca0-be70-f03d8c8b767c, ds:880b9927-94c9-4622-b9e9-4207a02fc42a,
+      ds:8d8c67b2-fc24-4b8c-a47c-4ba26d8bdc7c, ds:8e3f0506-0565-4bbf-8c8f-4f1455a9ddb3,
+      ds:9c4d360d-a06d-4a15-8ec9-0fb06fdaf8b4, ds:a3f7b1e6-5638-46f2-86ac-a5ad10f59c93,
+      ds:a8c96521-4230-45b4-aafc-9e1b433a93c1, ds:a9c6f5f1-b72b-4096-8bf5-cde4f9b4a9b1,
+      ds:b2521bb2-2b02-4482-b692-a22d3f9c8e83, ds:b66e3a38-0de4-4fc0-a648-3e07662a5132,
+      ds:b6cbd72a-9854-491e-b3d7-6982d8d46ff3, ds:c5dfae24-5087-475e-af64-c5b505d7809b,
+      ds:d8f75bf5-4b04-4094-88d2-a917465709a7, ds:d902dffa-90f3-44dc-92c3-aa56db042dc2,
+      ds:e1a50609-9495-433a-bb98-7116ac765be6, ds:efb7cf82-9cad-4fd5-a6cd-d829959d9063,
+      ds:f2357828-899d-4de6-8eb3-a7f27be4303e, _:40fb436578f9472abe180a1caa2c2db133669,
+      _:40fb436578f9472abe180a1caa2c2db133670, _:40fb436578f9472abe180a1caa2c2db133671 .
+  
+  _:40fb436578f9472abe180a1caa2c2db133672 sh:targetClass ds:License;
+    sh:property ds:9c450c3f-5cfc-4c11-b9c9-dabf4b71cfdf, ds:b9d161a3-6932-4dc2-90c1-c637b4867fcd .
+  
+  _:40fb436578f9472abe180a1caa2c2db133673 sh:targetClass fabio:Preprint .
+  
+  _:40fb436578f9472abe180a1caa2c2db133674 sh:targetClass schema:Person;
+    sh:property ds:022e449c-9d37-4e66-ae4e-e4e78ba68305, ds:177cdfca-5ebf-4b87-8748-e3f9467adf3e,
+      ds:2ec00541-a1ab-4f9a-9b1e-b39f662200a0, ds:3a8f91ad-2da2-4d88-8ece-8d6158398d48,
+      ds:3d9c2fea-2044-4395-b32a-4ea86a23cbe6, ds:50d14d1d-6048-4540-854e-c3dd3ea56c4b,
+      ds:5c93d3d0-bc13-4e98-bb29-91ca1e47cbe8, ds:7a569d56-f35c-4fdd-885e-77ad1d057c3b,
+      ds:8772ef1b-436a-4f85-b2a9-de54819355b7, ds:8e1ffc5f-5068-48d0-8910-986361607f0a,
+      ds:b0087595-ca1d-4ebd-82c6-768a0dc8f5eb, ds:c53a6c82-824c-4802-918c-b357701cdc12,
+      ds:ca79327f-8708-4c44-bc7f-39427fdd704a, ds:da5d676c-d6de-46da-af2a-eda695bd3ddd .
+}
