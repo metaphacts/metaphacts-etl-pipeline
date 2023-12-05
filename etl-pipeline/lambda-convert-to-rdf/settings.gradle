@@ -11,3 +11,4 @@ pluginManagement {
 rootProject.name='lambda-convert-to-rdf'
 
 include(':jsonsurfer-shaded')
+include(':carml-shaded')

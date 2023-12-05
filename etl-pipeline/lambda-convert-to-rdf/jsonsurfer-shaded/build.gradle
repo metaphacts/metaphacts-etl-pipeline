@@ -1,6 +1,6 @@
 plugins {
-  id 'java'
-  id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'java-library'
 }
 
 repositories {
@@ -12,6 +12,11 @@ dependencies {
   // a different version of antlr which cannot be used with this dependency at the same time
   implementation group: 'com.github.jsurfer', name: 'jsurfer-all', version: '1.6.4'
   implementation group: 'com.github.jsurfer', name: 'jsurfer-core', version: '1.6.4'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 shadowJar {

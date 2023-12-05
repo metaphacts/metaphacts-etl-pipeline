@@ -285,7 +285,7 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         return result.build();
     }
 
-    public long processFile(TaskContext tctx, Mapping mapping, Path sourceFile) throws IOException {
+    public long processFile(TaskContext tctx, Mapping mapping, Path sourceFile) throws Exception {
         logger.debug("Processing file {}", sourceFile.toString());
 
         MappingSpec mappingSpec = mapping.getMappingSpec();
@@ -450,7 +450,7 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
     }
 
     private long processDocument(TaskContext tctx, Path sourceFile, Mapping mapping, InputStream sourceStream,
-            RDFWriter writer, PrintWriter outDelete) throws IOException {
+            RDFWriter writer, PrintWriter outDelete) throws Exception {
         long aggregatedSize = 0;
 
         listener.startDocument();
@@ -469,6 +469,8 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
 
             LambdaLogger lambdaLogger = tctx.getLogger();
             lambdaLogger.log("Failed to process batch request: " + e.toString());
+
+            throw e;
         }
         listener.endDocument(success, aggregatedSize);
 
@@ -476,7 +478,9 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
     }
 
     private long processLines(TaskContext tctx, Path sourceFile, Mapping mapping, InputStream sourceStream,
-            RDFWriter writer, PrintWriter outDelete) throws IOException {
+            RDFWriter writer, PrintWriter outDelete) throws Exception {
+        long errors = 0;
+        long successes = 0;
         AtomicLong aggregatedSize = new AtomicLong();
         // convert stream to reader to process line by line
         try (BufferedReader sourceReader = fileHelper.openInputReader(sourceStream)) {
@@ -513,8 +517,10 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
                             aggregatedSize.addAndGet(statements);
                         }
                     });
+                    successes++;
                 } catch (Exception e) {
                     success = false;
+                    errors++;
                     logger.warn("Failed to process batch request in line {}: {}", lineNumber, e.toString());
                     logger.trace("Failed line {}:", lineNumber);
                     logger.trace(line);
@@ -528,6 +534,10 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
                 listener.endDocument(success, aggregatedSize.get());
             }
             logger.debug("Processed {} lines", lineNumber);
+        }
+
+        if ((aggregatedSize.get() > 0) && (errors > 0) && (successes == 0)) {
+            throw new Exception("Failed to process " + errors + " lines without succesful conversions!");
         }
 
         return aggregatedSize.get();

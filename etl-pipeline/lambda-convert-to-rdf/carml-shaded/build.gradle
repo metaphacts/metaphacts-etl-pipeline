@@ -1,0 +1,34 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    CARML_VERSION = '0.4.9'
+}
+
+dependencies {
+    // we need our own variant of carml rewriting javax.inject.Inject to jakarta.inject.Inject
+    implementation group: 'io.carml', name: 'carml-engine', version: CARML_VERSION, transitive: false
+    implementation group: 'io.carml', name: 'carml-commons', version: CARML_VERSION, transitive: false
+    implementation group: 'io.carml', name: 'carml-model', version: CARML_VERSION, transitive: false
+    implementation group: 'io.carml', name: 'carml-join-storage', version: CARML_VERSION, transitive: false
+    implementation group: 'io.carml', name: 'carml-rdf-mapper', version: CARML_VERSION, transitive: false
+    implementation group: 'io.carml', name: 'carml-logical-source-resolver', version: CARML_VERSION, transitive: false
+    implementation group: 'io.carml', name: 'carml-logical-source-resolver-xpath', version: CARML_VERSION, transitive: false
+    implementation group: 'io.carml', name: 'carml-logical-source-resolver-csv', version: CARML_VERSION, transitive: false
+    implementation group: 'io.carml', name: 'carml-logical-source-resolver-jsonpath', version: CARML_VERSION, transitive: false
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+shadowJar {
+   relocate 'javax.inject', 'jakarta.inject'
+}

@@ -91,6 +91,9 @@ dependencies {
         }
     }
     
+    // for Quarkus 3 we need our own variant of carml with a rewritten version using `jakarta.inject.Inject`
+    implementation project(path: ':carml-shaded', configuration: 'shadow')
+    /*
     implementation group: 'io.carml', name: 'carml-engine', version: CARML_VERSION, transitive: false
     implementation group: 'io.carml', name: 'carml-commons', version: CARML_VERSION, transitive: false
     implementation group: 'io.carml', name: 'carml-model', version: CARML_VERSION, transitive: false
@@ -100,6 +103,8 @@ dependencies {
     implementation group: 'io.carml', name: 'carml-logical-source-resolver-xpath', version: CARML_VERSION, transitive: false
     implementation group: 'io.carml', name: 'carml-logical-source-resolver-csv', version: CARML_VERSION, transitive: false
     implementation group: 'io.carml', name: 'carml-logical-source-resolver-jsonpath', version: CARML_VERSION, transitive: false
+    */
+    
     // CARML dependencies
     implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.5.3', transitive: false        // JSON
     implementation group: 'org.reactivestreams', name: 'reactive-streams', version: '1.0.4', transitive: false  // JSON
