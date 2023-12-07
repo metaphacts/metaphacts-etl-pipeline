@@ -193,6 +193,8 @@ public class MappingManager {
             mapperBuilder.fileResolver(location);
         });
         mapperBuilder.addFunctions(new RmlFunctions());
+        GRELFunctions.register(mapperBuilder);
+
         return mapperBuilder.build();
     }
 

@@ -18,6 +18,12 @@ repositories {
         maven {
             url "https://plugins.gradle.org/m2/"
         }
+        maven {
+            url "https://repository.liferay.com/nexus/content/groups/public"
+            content {
+                includeGroup "com.github.fnoio"
+            }
+        }
     }
 }
 
@@ -131,6 +137,10 @@ dependencies {
     implementation group: 'net.minidev', name: 'accessors-smart', version: '2.4.7', transitive: false           // JSON
     implementation group: 'org.ow2.asm', name: 'asm', version: '9.1', transitive: false                         // JSON
     implementation group: 'com.univocity', name: 'univocity-parsers', version: '2.9.1', transitive: false       // CSV
+    
+    
+    // GREL functions
+    implementation group: 'com.github.fnoio', name: 'grel-functions-java', version: 'v0.7.3', transitive: false
     
 
 
