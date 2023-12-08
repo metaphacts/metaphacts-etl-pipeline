@@ -2,6 +2,10 @@
 
 ## Overview
 
+The pipeline definition, setup and helper scripts, implementation of lambda functions, etc. are contained in this repository. In order to set up and deploy an ETL pipeline, the Git repository needs to be cloned or the content downloaded and the setup scripts executed.
+
+See [Architecture](Architecture.md) for a detailed description of how the pipeline works.
+
 ### Prerequisites
 
 * [AWS account](https://repost.aws/knowledge-center/create-and-activate-aws-account)

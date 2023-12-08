@@ -16,7 +16,7 @@ The ETL pipeline has the following features:
 * convert source files to RDF using [RML](https://rml.io/) mappings
 * supported formats are CSV, XML, JSON, JSONL, also in compressed (gzipped) form
 * the RDF files are again written to an S3 bucket, one RDF file per source file
-* the RDF files are ingested into a graph using the [GraphDB Preload tool](https://graphdb.ontotext.com/documentation/10.2/loading-data-using-importrdf.html#load-vs-preload)
+* the RDF files are ingested into a graph using the [GraphDB Preload tool](https://graphdb.ontotext.com/documentation/10.4/loading-data-using-importrdf.html#load-vs-preload)
 * adding new files into the source bucket after the initial ingestion will add them as incremental updates
 
 ## Setup and Operation
@@ -27,4 +27,6 @@ See [ETL Pipeline Setup](Setup.md) for how to set up and run the pipeline.
 
 The following diagram shows the architecture of the ETL pipeline:
 
-<img src="data-ingestion-architecture.png">
+<img src="etl-pipeline-architecture.drawio.svg">
+
+See [Architecture](Architecture.md) for a detailed description of how the pipeline works.

@@ -110,8 +110,6 @@ The [SPARQL 1.1 query language](https://www.w3.org/TR/sparql11-query/) provides 
 
 Creating a knowledge graph involves different tasks and phases.
 
-<img src="FAIR-data-digital-transformation.jpg" border="0">
-
 The following sections describe some aspects to consider for knowledge graph creation.
 
 ### FAIR Data Principles
@@ -175,8 +173,6 @@ A data model defined using ontologies and vocabularies can be used for multiple 
 * to help when creating data mappings. The source data model (i.e. the data model e.g. of a JSON file or schema of a relational database) needs to be mapped to the RDF data model for the conversion process. Being able to easily identify properties and relations or connections between entity types greatly facilitates authoring of mappings.
 * allow for data validation. When defining the ontology using OWL and SHACL, this can be used to automatically validate the database and ensure that data follows the defined data model.
 * to drive an explorative user interface. When data is fully described, generic exploration of the dataset is much easier. Also, a knowledge graph engineer or application engineer may build a custom user interface for the dataset, which is greatly facilitated by good documentation of the data model.
-
-<img src="ontology-datasets-mappings-templates-vocabularies.jpg" border="0">
 
 ### Develop RDF Mappings
 
@@ -317,4 +313,4 @@ ETL pipelines are not yet available from the main public cloud providers as read
 
 ## Implementation of an ETL Pipeline
 
-Besides the blueprint describing the general approach to knowledge graph creation, a [concrete implementation](../etl-pipeline/README.md) of an Extract-Transform-Load (ETL) pipeline is provided.
+Besides the blueprint describing the general approach to knowledge graph creation, a [concrete implementation](../etl-pipeline/README.md) of an Extract-Transform-Load (ETL) pipeline is provided. See [Architecture](Architecture.md) for a detailed description.
