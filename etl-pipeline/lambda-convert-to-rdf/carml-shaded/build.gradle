@@ -1,6 +1,7 @@
 plugins {
     id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'java'
+    id 'eclipse'
 }
 
 repositories {
@@ -31,4 +32,22 @@ java {
 
 shadowJar {
    relocate 'javax.inject', 'jakarta.inject'
+}
+
+// this is a work-around to mark the libraries as exported
+// so they will be visible to the parent project in Eclipse
+eclipse {
+    classpath {
+      file {
+            whenMerged {
+                // setting all library dependencies to exported
+                def matchingEntries = entries.findAll { it.kind == 'lib' }
+                matchingEntries.each {
+                    it.exported = true 
+                }
+                //println "Final Classpath Entries:"
+                //entries.each { println it }
+            }
+        }
+    }
 }
