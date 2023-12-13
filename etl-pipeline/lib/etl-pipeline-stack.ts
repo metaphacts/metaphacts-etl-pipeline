@@ -8,14 +8,35 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { ETLInstance } from './ingestion-instance';
 import { ConvertToRDFLambda } from './convert-to-rdf-lambda';
 import { IngestionWorkflow } from './ingestion-workflow';
+import { EtlPipelineConfigProps } from './etl-pipeline-config';
+import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
+
+
+/** pipeline props including configuration */
+type EtlPipelineProps = cdk.StackProps & {
+  config: Readonly<EtlPipelineConfigProps>;
+};
 
 export class EtlPipelineStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props?: EtlPipelineProps) {
     super(scope, id, props);
 
     // SNS topic which will receive pipeline events
-    const pipelineEventsTopic = new sns.Topic(this, 'EtlPipelineTopic');
+    const pipelineEventsTopic = new sns.Topic(this, 'EtlPipelineTopic', {
+      displayName: 'ETL Pipeline notifications'
+    });
 
+    // optionally subscribe the provided email address to the topics
+    const emailAddress = props?.config.NOTIFICATION_EMAIL || undefined;
+    if (emailAddress) {
+      console.log("Creating SNS subscription to topic for address " + emailAddress);
+      pipelineEventsTopic.addSubscription(new EmailSubscription(emailAddress, {
+        json: true
+      }));
+    }
+    else {
+      console.log("Skipping creation of SNS subscription to topic: no email address provided");
+    }
 
     const assetBucket = new Bucket(this, 'assetBucket', {
       publicReadAccess: false,
@@ -24,7 +45,7 @@ export class EtlPipelineStack extends cdk.Stack {
       autoDeleteObjects: true,
     });
     
-    // deploy files from ../source-files into the bucket
+    // deploy files from ../assets into the bucket
     new BucketDeployment(this, 'assetBucketDeployment', {
       sources: [Source.asset('../assets')],
       destinationBucket: assetBucket,
@@ -75,15 +96,8 @@ export class EtlPipelineStack extends cdk.Stack {
       autoDeleteObjects: true,
     });
 
-    // deploy files from ../source-files into the bucket
-    new BucketDeployment(this, 'sourceBucketDeployment', {
-      sources: [Source.asset('../source-files')],
-      destinationBucket: sourceBucket,
-      retainOnDelete: false,
-      include: ['**'],
-      exclude: ['.gitignore', '.gitkeep'],
-      memoryLimit: 512,
-    });
+    // note: there is no auto-deploy of files from ../source-files 
+    // into the bucket, as they are to big for this method
 
     const outputBucket = new Bucket(this, 'outputBucket', {
       publicReadAccess: false,
@@ -105,10 +119,10 @@ export class EtlPipelineStack extends cdk.Stack {
       default: process.env.LOG_LEVEL || 'INFO'
     });
     const sshPubKey = new CfnParameter(this, 'sshPubKey', {
-      default: process.env.SSH_PUB_KEY || undefined
+      default: props?.config.SSH_PUB_KEY || undefined
     });
     const instanceType = new CfnParameter(this, 'instanceType', {
-      default: process.env.INSTANCE_TYPE || 't3.xlarge'
+      default: props?.config.INSTANCE_TYPE || 't3.xlarge'
     });
 
     console.log('Environment:');
@@ -130,13 +144,10 @@ export class EtlPipelineStack extends cdk.Stack {
 
     // Ingestion workflow
     const ingestionWorkflow = new IngestionWorkflow(this, 'IngestionWorkflow', {
-      /** bucket containing source files */
+      notificationTopic: pipelineEventsTopic,
       sourceBucket: sourceBucket,
-      /** bucket containing RML mappings */
       mappingsBucket: mappingsBucket,
-      /** bucket in which to place output files */
       outputBucket: outputBucket,
-      /** path within the bucket containing RML mappings */
       //mappingsPath?: string,
     });
   }

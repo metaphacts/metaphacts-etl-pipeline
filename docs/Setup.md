@@ -133,10 +133,10 @@ Mapping files should be provided as RDF files in Turtle format (`.ttl`).
 
 ### Deployment
 
-The deployment can be triggered using the `cdk deploy` command. See the section _Parameter Reference_ below for details on all available parameters!
+The deployment can be triggered using the `cdk deploy` command. It uses the configuration provided as environment variables and in the `.env` file. See the section _Parameter Reference_ below for details on all available parameters!
 
 ```bash
-cdk deploy --parameters "instanceType=t3.xlarge" --parameters "sshPubKey=ssh-ed25519 AAAA...XXX myuser@example.com"
+cdk deploy
 ```
 
 After synthesizing the CloudFormation templates, the CDK tool will ask once more for confirmation and display all created IAM roles and permissions.
@@ -157,7 +157,46 @@ Please note that some resources like the `output` S3 bucket are intentionally no
 
 ## Parameter Reference
 
-The ETL Pipeline can be parameterized with the following configuration values:
+The ETL Pipeline can be parameterized with configuration parameters set either as an environment variable or in a `.env` file located in the folder from which the `cdk deploy` command is executed.
+
+The following configuration options are available:
+
+### Pipeline ID
+
+ID of the pipeline. If provided, it will be appended to the pipeline id and allows to provision multiple independent instances of the pipeline.
+The id should only consist of letters, numbers and dashes, no whitespace or special characters.
+
+Example:
+```bash
+PIPELINE_ID=my-data
+```
+
+This will result in the resources of the provisioned pipeline be prefixed with `EtlPipeline-my-data`. When unsed, the resources will be prefixed with just `EtlPipeline`.
+
+### AWS account
+
+The AWS account in which to deploy the pipeline in which to deploy the pipeline. 
+
+When unset, the current region of the profile will be used.
+
+Example:
+
+```bash
+AWS_ACCOUNT=123456789012
+```
+
+### AWS region
+
+AWS region in which to deploy the pipeline. 
+
+When unset, the current region of the profile or the default region of the account will be used.
+
+Example:
+
+```bash
+AWS_REGION=us-east-1
+``````
+
 
 ### SSH Public Key
 
@@ -165,12 +204,12 @@ The SSH public key to store on the EC2 instance for ingestion. This can be used 
 
 The key is `sshPubKey`, the value is the full public key. The public key can be typically found in the `~/.ssh/` folder, e.g. in the file `~/.ssh/id_ed25519.pub`.
 
-This parameter is required.
+When unset, no remote access will be possible.
 
 Example:
 
 ```bash
-cdk deploy --parameters "sshPubKey=ssh-ed25519 AAAA...XXX myuser@example.com"
+SSH_PUB_KEY=ssh-ed25519 AAAA...XXX myuser@example.com
 ```
 
 ### EC2 Instance Type
@@ -182,6 +221,18 @@ The key is `instanceType`, the value is the canonical name of the instance type,
 
 This parameter is optional, the default value when unset is `t3.xlarge`.
 
+Example:
+
 ```bash
-cdk deploy --parameters "instanceType=t3.xlarge"
+INSTANCE_TYPE=t3.xlarge
+```
+
+### Email address for notifications
+
+When specified, email address will be registered for notifications from this pipeline. Notifications are sent as JSON documents to the provided email address. Further subscriptions may be added to the SNS topic manually.
+
+Note: upon registration the address will receive a subscription confirmation email. Only after confirming the subscription by clicking on the link contained in the confirmation message will further notifications be forwarded to that address!
+
+```bash
+NOTIFICATION_EMAIL=user@example.com
 ```

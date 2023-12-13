@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
+import * as sns from 'aws-cdk-lib/aws-sns';
 import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
@@ -19,6 +20,8 @@ import { Bucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
 import { Source, BucketDeployment } from 'aws-cdk-lib/aws-s3-deployment';
 
 export interface IngestionWorkflowProps {
+  /** SNS topic to which to send notifications */
+  notificationTopic: sns.Topic,
   /** bucket containing source files */
   sourceBucket: s3.Bucket,
   /** bucket containing RML mappings */
@@ -51,6 +54,19 @@ export class IngestionWorkflow extends Construct {
 
   /** ------------------ Step functions Definition ------------------ */
 
+  const publishStartWorkflowMessage = new tasks.SnsPublish(this, 'StartWorkflow', {
+    topic: props?.notificationTopic,
+    message: sfn.TaskInput.fromObject({
+      message: 'Launching RDF conversion'
+    }),
+  });
+
+  const publishEndWorkflowMessage = new tasks.SnsPublish(this, 'EndWorkflow', {
+    topic: props?.notificationTopic,
+    message: sfn.TaskInput.fromJsonPathAt('$.Payload'),
+    resultPath: '$.sns',
+  });
+
   const submitJob = new tasks.LambdaInvoke(this, 'Submit Job', {
     lambdaFunction: submitLambda,
     // Lambda's result is in the attribute `Payload`
@@ -79,7 +95,8 @@ export class IngestionWorkflow extends Construct {
   });
 
   // Create chain
-  const definition = submitJob
+  const definition = publishStartWorkflowMessage
+    .next(submitJob)
     .next(waitX)
     .next(getStatus)
     .next(new sfn.Choice(this, 'Job Complete?')
@@ -87,6 +104,8 @@ export class IngestionWorkflow extends Construct {
       .when(sfn.Condition.stringEquals('$.status', 'FAILED'), jobFailed)
       .when(sfn.Condition.stringEquals('$.status', 'SUCCEEDED'), finalStatus)
       .otherwise(waitX));
+
+  finalStatus.next(publishEndWorkflowMessage);
 
   // Create state machine
   const stateMachine = new sfn.StateMachine(this, 'CronStateMachine', {
