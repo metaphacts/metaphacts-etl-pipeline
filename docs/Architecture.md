@@ -2,14 +2,14 @@
 
 The following diagram shows the architecture of the ETL pipeline:
 
-<img src="etl-pipeline-architecture.drawio.svg">
+<img src="etl-pipeline-architecture-n.svg">
 
 The pipeline uses a multitude of AWS services to implement the RDF conversion and ingestion process with a cloud-native approach resulting in high parallelization and efficient use of resources.
 
 The following services are used:
 
 *  [Cloud Formation](https://aws.amazon.com/cloudformation/) and the [Cloud Development Kit (CDK)](https://aws.amazon.com/cdk/) to set up the pipeline and provision all resources
-*  [Simple Storage Service (S3)](https://aws.amazon.com/pm/serv-s3/) to store input files, configuration, output files and and [S3 Batch Operations](https://aws.amazon.com/s3/features/batch-operations/) to perform conversion of source data to RDF.
+*  [Simple Storage Service (S3)](https://aws.amazon.com/pm/serv-s3/) to store input files, configuration, output files and [S3 Batch Operations](https://aws.amazon.com/s3/features/batch-operations/) to perform conversion of source data to RDF.
 *  [Lambda](https://aws.amazon.com/pm/lambda/) for the RDF conversion and various control logic.
 *  [Step Functions](https://aws.amazon.com/step-functions/) to orchestrate the overall pipeline operation. The workflow is described below.
 *  [Elastic Compute Cloud (EC2)](https://aws.amazon.com/pm/ec2/) with [Elastic Block Storage (EBS)](https://aws.amazon.com/ebs/) to run the ingestion of RDF data into the RDF database including a full-text search index.
@@ -20,7 +20,7 @@ Configuration files and the user-provided RML mapping files are stored in a S3 b
 
 ## When To Use
 
-The pipeline follows the _Materialization_ approach described in the [Blueprint](Blueprint.md). It can be used whenever a knowledge graph should be created from highly connected source data. 
+The pipeline follows the _Materialization_ approach described in the [Concepts](Concepts.md). It can be used whenever a knowledge graph should be created from highly connected source data. 
 
 Source data is converted to RDF from any of the supported source formats.
 

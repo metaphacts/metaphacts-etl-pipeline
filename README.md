@@ -2,7 +2,7 @@
 
 The Extract-Transform-Load (ETL) pipeline provides a means to convert structured data to RDF, perform post-processing steps, and ingest it into a graph database.
 
-The pipeline follows the principles described in the [Blueprint](docs/Blueprint.md) and is based on an opinionated selection of components and tools:
+The pipeline follows the principles described in [Concepts](docs/Concepts.md) and is based on an opinionated selection of components and tools:
 
 * [Amazon Web Services (AWS)](https://aws.amazon.com/) as cloud environment
 * a selection of AWS services such as S3, CloudFormation, StepFunctions, Lambda, EC2, etc. for various parts
@@ -28,7 +28,7 @@ See [ETL Pipeline Setup](docs/Setup.md) for how to set up and run the pipeline.
 
 The following diagram shows the architecture of the ETL pipeline:
 
-<img src="docs/etl-pipeline-architecture.drawio.svg">
+<img src="docs/etl-pipeline-architecture-n.svg">
 
 See [Architecture](docs/Architecture.md) for a detailed description.
 

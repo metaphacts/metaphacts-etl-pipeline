@@ -27,6 +27,6 @@ See [ETL Pipeline Setup](Setup.md) for how to set up and run the pipeline.
 
 The following diagram shows the architecture of the ETL pipeline:
 
-<img src="etl-pipeline-architecture.drawio.svg">
+<img src="etl-pipeline-architecture-n.svg">
 
 See [Architecture](Architecture.md) for a detailed description of how the pipeline works.

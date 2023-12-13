@@ -1,6 +1,6 @@
-# Blueprint for Graph Creation
+# Concepts for Graph Creation
 
-This blueprint describes an approach for **creating a Knowledge Graph from source data**. It discusses various aspects relevant for knowledge graph creation and finally provides a concrete implementation based on an Extract-Transform-Load (ETL) pipeline consisting of an opinionated set of tools and running in a public cloud environment.
+This document describes an approach for **creating a Knowledge Graph from source data**. It discusses various aspects relevant for knowledge graph creation and finally provides a concrete implementation based on an Extract-Transform-Load (ETL) pipeline consisting of an opinionated set of tools and running in a public cloud environment.
 
 ## Source Data
 
@@ -16,7 +16,7 @@ Structured data includes machine readable files and formats like JSON, XML, CSV 
 
 Unstructured data includes documents like emails, PDF files, images, scanned paper documents, etc. which generally do not make the contained information available in a machine readable format. Reading, parsing, understanding, and converting unstructured data is a difficult task and often approached using machine learning (ML) techniques like Optical Character Recognition (OCR), Name Entity Recognition (NER), text classification, or Entity  Linking (EL) using services or libraries like [SpaCy](https://en.wikipedia.org/wiki/SpaCy).
 
-In this blueprint, only structured data is considered.
+In this document, only structured data is considered.
 
 ### Source Data Formats
 
@@ -114,6 +114,8 @@ The following sections describe some aspects to consider for knowledge graph cre
 
 ### FAIR Data Principles
 
+<img src="fair-logo.png">
+
 A knowledge graph is only one system within an enterprise environment consisting of interconnected systems. One key aspect in this world of interconnected systems and data is to follow the [FAIR Data principles](https://www.go-fair.org/fair-principles/):
 
 * **F**indable: metadata and data should be easy to find for both humans and computers. Machine-readable metadata is essential for automatic discovery of datasets and services.
@@ -124,6 +126,8 @@ A knowledge graph is only one system within an enterprise environment consisting
 ### Iterative Approach
 
 When creating a knowledge graph from scratch, it is often useful to apply an iterative approach:
+
+<img src="etl-pipeline-iterative-approach.png">
 
 * identify source datasets and make them accessible
 * define a data model using ontologies and vocabularies
@@ -313,4 +317,4 @@ ETL pipelines are not yet available from the main public cloud providers as read
 
 ## Implementation of an ETL Pipeline
 
-Besides the blueprint describing the general approach to knowledge graph creation, a [concrete implementation](../etl-pipeline/README.md) of an Extract-Transform-Load (ETL) pipeline is provided. See [Architecture](Architecture.md) for a detailed description.
+Besides this document describing the general approach to knowledge graph creation, a [concrete implementation](../etl-pipeline/README.md) of an Extract-Transform-Load (ETL) pipeline is provided. See [Architecture](Architecture.md) for a detailed description.
