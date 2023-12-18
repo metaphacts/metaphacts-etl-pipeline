@@ -152,6 +152,10 @@ export class ETLInstance extends Construct {
     // Add the Security Group to the EC2 instance
     etlInstance.addSecurityGroup(ec2InstanceSecurityGroup);
 
+    // public DNS name of EC2 Instance
+    new CfnOutput(this, 'instancePublicDnsName', {
+      value: `${etlInstance.instancePublicDnsName}`,
+    });
     // SSH Command to connect to the EC2 Instance
     new CfnOutput(this, 'sshCommand', {
       value: `ssh ec2-user@${etlInstance.instancePublicDnsName}`,

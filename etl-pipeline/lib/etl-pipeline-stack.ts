@@ -31,7 +31,7 @@ export class EtlPipelineStack extends cdk.Stack {
     if (emailAddress) {
       console.log("Creating SNS subscription to topic for address " + emailAddress);
       pipelineEventsTopic.addSubscription(new EmailSubscription(emailAddress, {
-        json: true
+        json: false
       }));
     }
     else {
@@ -110,6 +110,7 @@ export class EtlPipelineStack extends cdk.Stack {
     const rdfConversionLambda = new ConvertToRDFLambda(this, 'ConvertToRDFLambda', {
       sourceBucket: sourceBucket,
       mappingsBucket: mappingsBucket,
+      mappingsPath: props?.config.MAPPINGS_PREFIX || '',
       outputBucket: outputBucket,
     });
     
@@ -147,6 +148,7 @@ export class EtlPipelineStack extends cdk.Stack {
       notificationTopic: pipelineEventsTopic,
       sourceBucket: sourceBucket,
       mappingsBucket: mappingsBucket,
+      runtimeBucket: runtimeBucket,
       outputBucket: outputBucket,
       //mappingsPath?: string,
     });

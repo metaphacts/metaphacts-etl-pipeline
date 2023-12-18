@@ -18,18 +18,30 @@ import {
 import { RemovalPolicy, Duration, Stack, CfnOutput } from 'aws-cdk-lib';
 import { Bucket, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
 import { Source, BucketDeployment } from 'aws-cdk-lib/aws-s3-deployment';
+import { IntegrationPattern, JsonPath, TaskInput } from 'aws-cdk-lib/aws-stepfunctions';
 
 export interface IngestionWorkflowProps {
   /** SNS topic to which to send notifications */
   notificationTopic: sns.Topic,
   /** bucket containing source files */
   sourceBucket: s3.Bucket,
+  /** source prefix (e.g. folder) within source bucket. When unset, all files will be considered */
+  sourcePrefix?: string,
+  /** 
+   * source regex pattern for files within source bucket. When unset, all files will be considered.
+   * Note: the pattern needs to match the full key name, i.e. inclusing any prefix defined using SOURCE_PREFIX.
+   */
+  sourcePattern?: string,
+
   /** bucket containing RML mappings */
   mappingsBucket: s3.Bucket,
-  /** bucket in which to place output files */
-  outputBucket: s3.Bucket,
   /** path within the bucket containing RML mappings */
   mappingsPath?: string,
+
+  /** bucket containing runtime data */
+  runtimeBucket: s3.Bucket,
+  /** bucket in which to place output files */
+  outputBucket: s3.Bucket,
 }
 
 export class IngestionWorkflow extends Construct {
@@ -38,11 +50,30 @@ export class IngestionWorkflow extends Construct {
 
   /** ------------------ Lambda Handlers Definition ------------------ */
 
+  // Create a role for the conversion lambda to assume.  This role will allow the instance to put log events to CloudWatch Logs
+  const lambdaRole = new Role(this, 'lambdaRole', {
+    assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+    inlinePolicies: {
+      ['RetentionPolicy']: new PolicyDocument({
+        statements: [
+          new PolicyStatement({
+            resources: ['*'],
+            actions: [
+              'logs:PutRetentionPolicy',
+              'states:SendTask*',
+            ],
+          }),
+        ],
+      }),
+    },
+  });
+
   const getStatusLambda = new lambda.Function(this, 'CheckLambda', {
     code: new lambda.InlineCode(fs.readFileSync('lambda-check-status/check_status.py', { encoding: 'utf-8' })),
     handler: 'index.main',
     timeout: cdk.Duration.seconds(30),
     runtime: lambda.Runtime.PYTHON_3_9,
+    role: lambdaRole
   });
 
   const submitLambda = new lambda.Function(this, 'SubmitLambda', {
@@ -50,7 +81,34 @@ export class IngestionWorkflow extends Construct {
     handler: 'index.main',
     timeout: cdk.Duration.seconds(30),
     runtime: lambda.Runtime.PYTHON_3_9,
+    role: lambdaRole
   });
+
+  const createS3BatchManifestLambda = new lambda.Function(this, 'CreateS3BatchManifest', {
+    //code: new lambda.InlineCode(fs.readFileSync('lambda-create-s3batch-manifest/submit.py', { encoding: 'utf-8' })),
+    code: lambda.Code.fromAsset('lambda-create-s3batch-manifest', {
+      bundling: {
+        image: lambda.Runtime.PYTHON_3_9.bundlingImage,
+        command: [
+          'bash',
+          '-c',
+          'pip install -r requirements.txt -t /asset-output && cp -au . /asset-output',
+        ],
+      },
+    }),
+    handler: 'create-s3batch-manifest.lambda_handler',
+    timeout: cdk.Duration.minutes(15),
+    runtime: lambda.Runtime.PYTHON_3_9,
+    environment: {
+      "SOURCE_BUCKET": `${props.sourceBucket.bucketName}`,
+      "SOURCE_PREFIX": `${props.sourcePrefix  || ''}`,
+      "SOURCE_PATTERN": `${props.sourcePattern || '.*'}`,
+      "RUNTIME_BUCKET": `${props.runtimeBucket.bucketName}`,
+    },
+    role: lambdaRole
+  });
+  props.runtimeBucket.grantReadWrite(createS3BatchManifestLambda)
+  props.sourceBucket.grantRead(createS3BatchManifestLambda)
 
   /** ------------------ Step functions Definition ------------------ */
 
@@ -84,6 +142,19 @@ export class IngestionWorkflow extends Construct {
     outputPath: '$.Payload',
   });
 
+  const createS3BatchManifest = new tasks.LambdaInvoke(this, 'Create S3 Batch Manifest', {
+    lambdaFunction: createS3BatchManifestLambda,
+    integrationPattern: IntegrationPattern.WAIT_FOR_TASK_TOKEN,
+    payload: TaskInput.fromObject({
+      taskToken: JsonPath.taskToken,
+      runtimeBucket: props.runtimeBucket.bucketName,
+      sourceBucket: props.sourceBucket.bucketName,
+      sourcePrefix: props.sourcePrefix,
+      sourcePattern: props.sourcePattern,
+    }),
+    outputPath: '$.Payload',
+  });
+
   const jobFailed = new sfn.Fail(this, 'Job Failed', {
     cause: 'AWS Batch Job Failed',
     error: 'DescribeJob returned FAILED',
@@ -96,6 +167,7 @@ export class IngestionWorkflow extends Construct {
 
   // Create chain
   const definition = publishStartWorkflowMessage
+    .next(createS3BatchManifest)
     .next(submitJob)
     .next(waitX)
     .next(getStatus)
@@ -116,6 +188,9 @@ export class IngestionWorkflow extends Construct {
   // Grant lambda execution roles
   submitLambda.grantInvoke(stateMachine.role);
   getStatusLambda.grantInvoke(stateMachine.role);
+  createS3BatchManifestLambda.grantInvoke(stateMachine.role);
+  
+  props.notificationTopic.grantPublish(stateMachine);
   
   props.mappingsBucket.grantRead(stateMachine.role);
   props.sourceBucket.grantRead(stateMachine.role);

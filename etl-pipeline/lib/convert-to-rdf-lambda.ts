@@ -29,7 +29,7 @@ export class ConvertToRDFLambda extends Construct {
     super(scope, id);
 
 
-    // Create a role for the EC2 instance to assume.  This role will allow the instance to put log events to CloudWatch Logs
+    // Create a role for the conversion lambda to assume.  This role will allow the instance to put log events to CloudWatch Logs
     const lambdaRole = new Role(this, 'lambdaRole', {
       assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
       inlinePolicies: {
@@ -48,6 +48,9 @@ export class ConvertToRDFLambda extends Construct {
       ],
     });
 
+
+    const mappingsDir = `s3://${props.mappingsBucket.bucketName}/${props.mappingsPath || ''}`;
+
     const conversionLambda = new lambda.Function(this, 'RDFConversionLambda', {
       runtime: lambda.Runtime.JAVA_21,    // execution environment
       code: lambda.Code.fromAsset('lambda-convert-to-rdf', {
@@ -62,12 +65,12 @@ export class ConvertToRDFLambda extends Construct {
           ]
         }
       }),  // code loaded from "lambda-convert-to-rdf" directory
-      // TODO refactor package name
       handler: 'com.metaphacts.etl.lambda.ConvertToRDFLambda::handleRequest',
       memorySize: 1024,
       timeout: cdk.Duration.minutes(15),
       environment: {
         "UPLOAD_BUCKET": `${props.outputBucket.bucketName}`,
+        "MAPPINGS_DIR": mappingsDir,
         "PROCESS_COLDSTART": "false",
         "PROCESS_DETECT_LASTUPDATE": "false"
       }

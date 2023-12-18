@@ -37,6 +37,15 @@ export type EtlPipelineConfigProps = {
    * Note: The address will receive a subscription confirmation email.
    * */
   NOTIFICATION_EMAIL?: string;
+  /** source prefix (e.g. folder) within source bucket. When unset, all files will be considered */
+  SOURCE_PREFIX?: string,
+  /** 
+   * source regex pattern for files within source bucket. When unset, all files will be considered.
+   * Note: the pattern needs to match the full key name, i.e. inclusing any prefix defined using SOURCE_PREFIX.
+   */
+  SOURCE_PATTERN?: string,
+  /** mappings prefix (e.g. folder) within mappings bucket. When unset, all files will be considered */
+  MAPPINGS_PREFIX?: string,
 };
 
 export const getConfig = (): EtlPipelineConfigProps => ({
@@ -46,4 +55,7 @@ export const getConfig = (): EtlPipelineConfigProps => ({
   SSH_PUB_KEY: process.env.SSH_PUB_KEY,
   INSTANCE_TYPE: process.env.INSTANCE_TYPE,
   NOTIFICATION_EMAIL: process.env.NOTIFICATION_EMAIL,
+  SOURCE_PREFIX: process.env.SOURCE_PREFIX,
+  SOURCE_PATTERN: process.env.SOURCE_PATTERN,
+  MAPPINGS_PREFIX: process.env.MAPPINGS_PREFIX,
 });
