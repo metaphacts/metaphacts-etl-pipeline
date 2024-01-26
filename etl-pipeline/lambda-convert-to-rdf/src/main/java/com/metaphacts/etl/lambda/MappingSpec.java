@@ -218,7 +218,7 @@ public class MappingSpec {
     }
 
     public boolean hasProcessingHint(String processingHint) {
-        return processingHints.contains(processingHint);
+        return (processingHints != null) && processingHints.contains(processingHint);
     }
 
     @Override

@@ -32,10 +32,7 @@ import jakarta.inject.Inject;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
-import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 /**
  * This class implements some special cases for pre-processing, change
@@ -86,6 +83,8 @@ public class SpecialCases {
 
     @Inject
     S3Client s3;
+    @Inject
+    FileHelper fileHelper;
 
 
     public SpecialCases() {
@@ -273,11 +272,7 @@ public class SpecialCases {
             // upload delete file to S3
             try {
                 // Upload delete files only for incremental updates
-                PutObjectRequest putRequestDelete = PutObjectRequest.builder().bucket(uploadBucket).key(keyDelete)
-                        .build();
-                PutObjectResponse putResponseDelete = s3.putObject(putRequestDelete,
-                        RequestBody.fromFile(localPathDelete));
-                logger.trace("Successfully uploaded file {}/{}: {}", uploadBucket, keyDelete, putResponseDelete);
+                fileHelper.uploadToS3(uploadBucket, keyDelete, localPathDelete);
                 return Optional.of(keyDelete);
             } catch (Exception e) {
                 logger.warn("Failed to upload file {}/{}: {}", uploadBucket, keyDelete, e.getMessage());

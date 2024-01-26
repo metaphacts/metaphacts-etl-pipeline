@@ -9,6 +9,7 @@ import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -98,7 +99,9 @@ public class MappingManager {
     }
 
     public void prepareMappers(URI mappingConfigURI, Path inputDir) {
-        logger.debug("Loading mapping config from path {} ...", mappingConfigURI);
+        String m = String.format("Loading mapping config from path %s ...", mappingConfigURI);
+        logger.debug(m);
+        lambdaLoggerManager.get().ifPresent(lambdaLogger -> lambdaLogger.log(m));
         Optional<MappingConfig> mappingConfigHolder = getMappingConfig(mappingConfigURI);
         if (!mappingConfigHolder.isPresent()) {
             String message = String.format("Failed to load mapping config from path %s!", mappingConfigURI);
@@ -112,26 +115,35 @@ public class MappingManager {
         for (MappingSpec spec : mappingConfig.getMappings()) {
             try {
                 Model mappingModel = null;
-                for (String mappingFile : spec.getMappingFiles()) {
-                    URI mappingFileURI = mappingConfigURI.resolve(mappingFile);
-                    logger.debug("loading mappings for {} from {}", spec.getId(), mappingFileURI);
-                    try {
-                        Model model = loadModel(mappingFileURI);
-                        if (mappingModel == null) {
-                            // first mapping file
-                            mappingModel = model;
-                        } else {
-                            // additional files, merge into aggregated mappings model
-                            mappingModel.addAll(model);
+                List<String> mappingFiles = spec.getMappingFiles();
+                if (mappingFiles != null && mappingFiles.size() > 0) {
+                    logger.info("creating mappings for {} from {}", spec.getId(), String.join(", ", mappingFiles));
+                    for (String mappingFile : mappingFiles) {
+                        URI mappingFileURI = mappingConfigURI.resolve(mappingFile);
+                        logger.debug("loading mappings for {} from {}", spec.getId(), mappingFileURI);
+                        try {
+                            Model model = loadModel(mappingFileURI);
+                            if (mappingModel == null) {
+                                // first mapping file
+                                mappingModel = model;
+                            } else {
+                                // additional files, merge into aggregated mappings model
+                                mappingModel.addAll(model);
+                            }
+                        } catch (Exception e) {
+                            logger.warn("failed to load mappings from {}: {}", mappingFileURI, e.getMessage());
+                            logger.debug("Details: ", e);
+                            throw e;
                         }
-                    } catch (Exception e) {
-                        logger.warn("failed to load mappings from {}: {}", mappingFileURI, e.getMessage());
-                        logger.debug("Details: ", e);
-                        throw e;
                     }
+                    createMapping(spec, mappingModel, inputDir);
                 }
-
-                createMapping(mappingConfigURI, spec, mappingModel, inputDir);
+                else {
+                    logger.info("creating mappings for {} with processsing hints {}", spec.getId(),
+                            String.join(", ", spec.getProcessingHints()));
+                    logger.warn("no mappings specified for fileset {}", spec.getId());
+                    createMapping(spec, Optional.empty());
+                }
             } catch (Exception e) {
                 logger.warn("failed to load mappings for {}: {}", spec.getId(), e.getMessage());
                 logger.debug("Details: ", e);
@@ -139,9 +151,13 @@ public class MappingManager {
         }
     }
 
-    private void createMapping(URI mappingConfigURI, MappingSpec spec, Model mappingModel, Path inputDir) {
+    private void createMapping(MappingSpec spec, Model mappingModel, Path inputDir) {
         RdfRmlMapper mapper = prepareMapper(mappingModel, inputDir);
-        Mapping mapping = new Mapping(spec, mappingModel, mapper);
+        createMapping(spec, Optional.of(mapper));
+    }
+
+    private void createMapping(MappingSpec spec, Optional<RdfRmlMapper> mapper) {
+        Mapping mapping = new Mapping(spec, mapper);
         mappings.put(spec.getId().toLowerCase(), mapping);
     }
 

@@ -6,16 +6,15 @@ package com.metaphacts.etl.lambda;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -35,6 +34,7 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.impl.LinkedHashModel;
 import org.eclipse.rdf4j.model.util.Values;
 import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFHandler;
 import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.WriterConfig;
@@ -60,17 +60,11 @@ import io.carml.engine.rdf.RdfRmlMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import reactor.core.publisher.Flux;
 import software.amazon.awssdk.arns.Arn;
-import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.internal.resource.S3ArnConverter;
 import software.amazon.awssdk.services.s3.internal.resource.S3BucketResource;
 import software.amazon.awssdk.services.s3.internal.resource.S3Resource;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @Named("convert2rdf")
 public class ConvertToRDFLambda implements RequestStreamHandler {
@@ -84,14 +78,14 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
     private final ConversionStats listener = new ConversionStats();
 
     @Inject
-    S3Client s3;
-    @Inject
     FileHelper fileHelper;
     @Inject
     MappingManager mappingManager;
     @Inject
     LambdaLoggerManager lambdaLoggerManager;
 
+    @ConfigProperty(name = "process.error", defaultValue = "permanent")
+    String processErrorResultCode;
     @ConfigProperty(name = "process.lines", defaultValue = "-1")
     Integer processLines;
     @ConfigProperty(name = "input.dir", defaultValue = "/tmp/input")
@@ -112,19 +106,22 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
     String mappingsDir;
 
     @ConfigProperty(name = "output.dir", defaultValue = "/tmp/output")
-    String rdfOutputDir;
+    String outputDir;
     @ConfigProperty(name = "output.format", defaultValue = "trig")
     String rdfOutputFormat;
     @ConfigProperty(name = "output.compressed", defaultValue = "true")
     Boolean rdfOutputCompressed;
     @ConfigProperty(name = "output.context.base", defaultValue = "https://example.com/")
     String contextBaseNamespace;
+    @ConfigProperty(name = "output.batchsize", defaultValue = "1000")
+    int outputBatchSize;
 
     Path resolvedInputDir;
     Path resolvedDownloadDir;
-    Path resolvedMappingsDir;
-    Path resolvedRdfOutputDir;
+    Path resolvedOutputDir;
     RDFFormat resolvedRdfOutputFormat;
+
+    ResultCode errorResult = ResultCode.PermanentFailure;
 
     @Inject
     SpecialCases specialCases;
@@ -137,16 +134,17 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         final Path currentDir = Paths.get("").toRealPath();
 
         resolvedInputDir = currentDir.resolve(inputDir);
-        ensureFolderExists(resolvedInputDir).toRealPath();
+        fileHelper.ensureFolderExists(resolvedInputDir).toRealPath();
         resolvedDownloadDir = currentDir.resolve(downloadDir);
-        ensureFolderExists(resolvedDownloadDir).toRealPath();
-        resolvedMappingsDir = currentDir.resolve(mappingsDir);
-        ensureFolderExists(resolvedMappingsDir).toRealPath();
-        resolvedRdfOutputDir = currentDir.resolve(rdfOutputDir);
-        ensureFolderExists(resolvedRdfOutputDir).toRealPath();
+        fileHelper.ensureFolderExists(resolvedDownloadDir).toRealPath();
+        resolvedOutputDir = currentDir.resolve(outputDir);
+        fileHelper.ensureFolderExists(resolvedOutputDir).toRealPath();
         resolvedRdfOutputFormat = Rio.getWriterFormatForFileName("xxx." + rdfOutputFormat)
                                         .or(() -> Rio.getWriterFormatForMIMEType(rdfOutputFormat))
                                         .orElse(RDFFormat.NQUADS);
+        if (processErrorResultCode != null && processErrorResultCode.toLowerCase().startsWith("temp")) {
+            errorResult = ResultCode.TemporaryFailure;
+        }
 
         if (uploadEnabled && StringUtils.isAllBlank(uploadBucket)) {
             // no bucket configured
@@ -173,7 +171,7 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
                     // write response
                     S3BatchResponse response = S3BatchResponse.builder()
                                                     .withInvocationSchemaVersion("1")
-                                                    .withTreatMissingKeysAs(ResultCode.TemporaryFailure)
+                            .withTreatMissingKeysAs(errorResult)
                                                     .build();
                     writer.write(gson.toJson(response));
                     return;
@@ -198,7 +196,7 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
                     } catch (Exception e) {
                         result = Result.builder()
                                         .withTaskId(task.getTaskId())
-                                        .withResultCode(ResultCode.TemporaryFailure)
+                                .withResultCode(errorResult)
                                         .withResultString(e.getMessage()).build();
                         logger.warn("Failed to process task {}: {}", task.getS3Key(), e.getMessage());
                         logger.debug("Details:", e);
@@ -227,7 +225,7 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
                 // write response
                 S3BatchResponse response = S3BatchResponse.fromS3BatchEvent(request)
                                                             .withResults(results)
-                                                            .withTreatMissingKeysAs(ResultCode.TemporaryFailure)
+                        .withTreatMissingKeysAs(errorResult)
                                                             .build();
                 writer.write(gson.toJson(response));
                 if (writer.checkError()) {
@@ -242,6 +240,13 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         }
     }
 
+    protected String strackTraceToString(Exception e) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        String stacktrace = sw.toString();
+        return stacktrace;
+    }
+
     private Result processTask(TaskContext context) {
         Task task = context.getTask();
         ResultBuilder result = Result.builder()
@@ -252,7 +257,7 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
             String taskFileName = context.getTask().getS3Key();
             Optional<Mapping> mappingHolder = mappingManager.getMappingFor(taskFileName);
             if (mappingHolder.isEmpty()) {
-                result.withResultCode(ResultCode.TemporaryFailure)
+                result.withResultCode(errorResult)
                         .withResultString("Failed: no matching mapping found");
                 return result.build();
             }
@@ -275,10 +280,13 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
                     lambdaLoggerManager.remove();
                 }
             } else {
-                result.withResultCode(ResultCode.TemporaryFailure).withResultString("Failed: file not found");
+                result.withResultCode(errorResult).withResultString("Failed: file not found");
             }
         } catch (Exception e) {
-            result.withResultCode(ResultCode.TemporaryFailure)
+            final LambdaLogger lambdaLogger = context.getLogger();
+            lambdaLogger.log("Failed to process task " + task.getS3Key() + ": " + e.getMessage());
+            // lambdaLogger.log("Details: " + strackTraceToString(e));
+            result.withResultCode(errorResult)
                     .withResultString("Failed: " + e.getMessage());
         }
 
@@ -296,7 +304,7 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
 
         // try (BufferedReader sourceReader = fileHelper.openInputReader(sourceFile)) {
         try (InputStream sourceStream = fileHelper.openInputStream(sourceFile)) {
-            Path outputPath = resolveRDFFile(tctx, mapping, sourceFile, type);
+            Path outputPath = resolveOutputFile(tctx, mapping, sourceFile, type);
             Path outputPathDelete = Paths.get(outputPath.toString() + SpecialCases.SUFFIX_DELETE);
             // determine the target named graph for the source file
             Path inputFile = Path.of(tctx.getTask().getS3Key());
@@ -313,17 +321,23 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
             try (PrintWriter outDelete = new PrintWriter(fileHelper.openOutputFile(outputPathDelete))) {
                 // open RDF file for output
                 try (OutputStream out = fileHelper.openOutputFile(outputPath)) {
-                    // create RDF writer and write pre-amble with namespace declarations
-                    RDFWriter writer = openRDFFile(tctx, mapping, out, targetContext, mappingManager.getNamespaces());
-
-                    boolean processLineByLine = shouldProcessLineByLine(tctx, sourceFile, mapping);
-                    if (processLineByLine) {
-                        aggregatedSize = processLines(tctx, sourceFile, mapping, sourceStream, writer, outDelete);
-                    } else {
-                        aggregatedSize = processDocument(tctx, sourceFile, mapping, sourceStream, writer, outDelete);
+                    if (mapping.getMappingSpec().hasProcessingHint(ProcessingHints.COPY_FILE)) {
+                        // copy data unchanged
+                        IOUtils.copy(sourceStream, out);
                     }
-
-                    endRDF(writer);
+                    else {
+                        // create RDF writer and write pre-amble with namespace declarations
+                        RDFWriter writer = openRDFFile(tctx, mapping, out, targetContext, mappingManager.getNamespaces());
+    
+                        boolean processLineByLine = shouldProcessLineByLine(tctx, sourceFile, mapping);
+                        if (processLineByLine) {
+                            aggregatedSize = processLines(tctx, sourceFile, mapping, sourceStream, writer, outDelete);
+                        } else {
+                            aggregatedSize = processDocument(tctx, sourceFile, mapping, sourceStream, writer);
+                        }
+    
+                        endRDF(writer);
+                    }
                 }
             }
             boolean saveResults = specialCases.saveResults(tctx, mapping);
@@ -364,16 +378,16 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         return FileHelper.hasExtension(path, FileHelper.EXTENSION_JSONL);
     }
 
-    private Path resolveRDFFile(TaskContext tctx, Mapping mapping, Path sourceFile, String type) throws IOException {
+    private Path resolveOutputFile(TaskContext tctx, Mapping mapping, Path sourceFile, String type) throws IOException {
         Path inputFile = Path.of(tctx.getTask().getS3Key());
 
         // define file name in output folder
         RDFFormat outputFormat = resolvedRdfOutputFormat;
         Path outputFile = outputFileForSource(tctx, mapping, inputFile, outputFormat);
 
-        Path outputPath = resolvedRdfOutputDir.resolve(outputFile);
+        Path outputPath = resolvedOutputDir.resolve(outputFile);
         outputPath = outputPath.toAbsolutePath();
-        ensureFolderExists(outputPath.getParent());
+        fileHelper.ensureFolderExists(outputPath.getParent());
         return outputPath;
     }
 
@@ -403,20 +417,6 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         return writer;
     }
 
-    private Path ensureFolderExists(Path outputFolder) {
-        if (!Files.isDirectory(outputFolder)) {
-            try {
-                logger.debug("Creating folder {}", outputFolder);
-                Files.createDirectories(outputFolder);
-            } catch (IOException e) {
-                logger.warn("Failed to create folder {}: {}", outputFolder, e.getMessage());
-                logger.debug("Details: ", e);
-                throw new RuntimeException(String.format("Failed to create folder %s", outputFolder), e);
-            }
-        }
-        return outputFolder;
-    }
-
     private Resource targetContextForSource(MappingSpec mappingSpec, Path sourceFile, String type,
             Optional<String> dataset) {
         IRI targetContext = null;
@@ -433,6 +433,12 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
     }
 
     private Path outputFileForSource(TaskContext tctx, Mapping mapping, Path sourcePath, RDFFormat outputFormat) {
+        String outputFile = sourcePath.toString();
+        if (mapping.getMappingSpec().hasProcessingHint(ProcessingHints.COPY_FILE)) {
+            // returned filename unchanged
+            return Path.of(outputFile);
+        }
+        
         String sourceFile = sourcePath.toString();
         // strip .gz ending
         sourceFile = FileHelper.stripExtension(sourceFile, FileHelper.EXTENSION_GZ);
@@ -440,7 +446,7 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         sourceFile = FileHelper.stripExtension(sourceFile, FileHelper.EXTENSION_JSONL);
 
         // append RDF file format extension
-        String outputFile = sourceFile + "." + outputFormat.getDefaultFileExtension();
+        outputFile = sourceFile + "." + outputFormat.getDefaultFileExtension();
 
         if (rdfOutputCompressed) {
             outputFile = outputFile + FileHelper.EXTENSION_GZ;
@@ -450,7 +456,7 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
     }
 
     private long processDocument(TaskContext tctx, Path sourceFile, Mapping mapping, InputStream sourceStream,
-            RDFWriter writer, PrintWriter outDelete) throws Exception {
+            RDFWriter writer) throws Exception {
         long aggregatedSize = 0;
 
         listener.startDocument();
@@ -459,8 +465,8 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         try (InputStream input = sourceStream) {
 
             // perform mapping on whole document
-            Model model = performMapping(tctx, sourceFile, mapping, input);
-            aggregatedSize += writeRDF(writer, model);
+            BatchingRDFWriter batchingWriter = new BatchingRDFWriter(writer, outputBatchSize);
+            aggregatedSize += performMapping(tctx, sourceFile, mapping, input, batchingWriter);
 
         } catch (Exception e) {
             success = false;
@@ -530,6 +536,7 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
                     lambdaLogger.log("Failed to process batch request: " + e.toString());
                     lambdaLogger.log("Failed line:");
                     lambdaLogger.log(line);
+                    //lambdaLogger.log("Details: " + strackTraceToString(e));
                 }
                 listener.endDocument(success, aggregatedSize.get());
             }
@@ -561,14 +568,27 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         return out;
     }
 
+    /**
+     * Perform RDF mapping and return a {@link Model}.
+     * 
+     * @param tctx       task context
+     * @param sourceFile path to source file
+     * @param mapping    mapping to apply
+     * @param input      input stream
+     * @return {@link Model} containing generated RDF statements
+     * @throws IOException in case of errors
+     */
     private Model performMapping(TaskContext tctx, Path sourceFile, Mapping mapping, InputStream input)
             throws IOException {
         Model out = new LinkedHashModel();
 
         // perform mapping for document
         try {
-            RdfRmlMapper rmlMapper = mapping.getMapper();
-            Model model = rmlMapper.mapToModel(input);
+            Optional<RdfRmlMapper> rmlMapper = mapping.getMapper();
+            if (!rmlMapper.isPresent()) {
+                throw new IllegalArgumentException("no RDF mappings available for " + mapping.getType());
+            }
+            Model model = rmlMapper.get().mapToModel(input);
             out.addAll(model);
         } finally {
             try {
@@ -580,6 +600,46 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         }
 
         return out;
+    }
+    
+    /**
+     * Perform RDF mapping and forward statements to an {@link RDFHandler} (e.g. a
+     * {@link RDFWriter}).
+     * 
+     * @param tctx       task context
+     * @param sourceFile path to source file
+     * @param mapping    mapping to apply
+     * @param input      input stream
+     * @param handler    handler for generated RDF statements
+     * @return number of mapped statements
+     * @throws IOException in case of errors
+     */
+    private long performMapping(TaskContext tctx, Path sourceFile, Mapping mapping, InputStream input,
+            RDFHandler handler)
+            throws IOException {
+        // perform mapping for document
+        AtomicLong count = new AtomicLong(0);
+        try {
+            Optional<RdfRmlMapper> rmlMapper = mapping.getMapper();
+            if (!rmlMapper.isPresent()) {
+                throw new IllegalArgumentException("no RDF mappings available for " + mapping.getType());
+            }
+            Flux<Statement> flux = rmlMapper.get().map(input);
+            // send each element to provided handler
+            flux.subscribe(statement -> {
+                handler.handleStatement(statement);
+                count.incrementAndGet();
+            });
+        } finally {
+            try {
+                input.close();
+            } catch (Exception e) {
+                logger.warn("Failed to close input stream: " + e.getMessage());
+                logger.debug("Details: ", e);
+            }
+        }
+
+        return count.get();
     }
 
     private Optional<Path> downloadFile(TaskContext context) {
@@ -599,17 +659,8 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
             // download file
             try {
                 localFile = resolvedDownloadDir.resolve(key);
-                ensureFolderExists(localFile.getParent());
-                GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucket)
-                        .key(key).build();
-
-                try (ResponseInputStream<GetObjectResponse> response = s3.getObject(getObjectRequest)) {
-                    try (OutputStream out = new FileOutputStream(localFile.toFile())) {
-                        // write to local file
-                        IOUtils.copy(response, out);
-                    }
-                    return Optional.of(localFile);
-                }
+                fileHelper.downloadFile(bucket, key, localFile);
+                return Optional.of(localFile);
             } catch (Exception e) {
                 logger.warn("Failed to download file {}/{}: {}", bucket, key,
                         e.getMessage());
@@ -658,9 +709,7 @@ public class ConvertToRDFLambda implements RequestStreamHandler {
         
         // upload to S3
         try {
-            PutObjectRequest putRequest = PutObjectRequest.builder().bucket(uploadBucket).key(key).build();
-            PutObjectResponse putResponse = s3.putObject(putRequest, RequestBody.fromFile(localPath));
-            logger.trace("Successfully uploaded file {}/{}: {}", uploadBucket, key, putResponse);
+            fileHelper.uploadToS3(uploadBucket, key, localPath);
 
             return Optional.of(outputFile);
         } catch (Exception e) {

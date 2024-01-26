@@ -46,6 +46,13 @@ export type EtlPipelineConfigProps = {
   SOURCE_PATTERN?: string,
   /** mappings prefix (e.g. folder) within mappings bucket. When unset, all files will be considered */
   MAPPINGS_PREFIX?: string,
+
+  /** RDF conversion: amount of memory (MB), default 512 MB. Note: this influences costs. */
+  RDFCONVERT_MEMORY?: string,
+  /** RDF conversion: amount of ephemeral disk storage (MB), default 512 MB. Note: this influences costs. */
+  RDFCONVERT_STORAGE?: string,
+  /** RDF conversion: timeout for conversion (minutes), default 5 minutes. */
+  RDFCONVERT_TIMEOUT?: string,
 };
 
 export const getConfig = (): EtlPipelineConfigProps => ({
@@ -58,4 +65,7 @@ export const getConfig = (): EtlPipelineConfigProps => ({
   SOURCE_PREFIX: process.env.SOURCE_PREFIX,
   SOURCE_PATTERN: process.env.SOURCE_PATTERN,
   MAPPINGS_PREFIX: process.env.MAPPINGS_PREFIX,
+  RDFCONVERT_MEMORY: process.env.RDFCONVERT_MEMORY,
+  RDFCONVERT_STORAGE: process.env.RDFCONVERT_STORAGE,
+  RDFCONVERT_TIMEOUT: process.env.RDFCONVERT_TIMEOUT,
 });

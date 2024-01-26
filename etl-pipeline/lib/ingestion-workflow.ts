@@ -9,6 +9,8 @@ import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as fs from 'fs'
 import { Construct } from 'constructs';
 import {
+  AccountRootPrincipal,
+  CompositePrincipal,
   Role,
   ServicePrincipal,
   ManagedPolicy,
@@ -42,6 +44,8 @@ export interface IngestionWorkflowProps {
   runtimeBucket: s3.Bucket,
   /** bucket in which to place output files */
   outputBucket: s3.Bucket,
+  /** lambda function to process each source file  */
+  processingLambda: lambda.Function,
 }
 
 export class IngestionWorkflow extends Construct {
@@ -52,7 +56,7 @@ export class IngestionWorkflow extends Construct {
 
   // Create a role for the conversion lambda to assume.  This role will allow the instance to put log events to CloudWatch Logs
   const lambdaRole = new Role(this, 'lambdaRole', {
-    assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+    assumedBy: new CompositePrincipal(new ServicePrincipal('lambda.amazonaws.com'), new ServicePrincipal('batchoperations.s3.amazonaws.com')),
     inlinePolicies: {
       ['RetentionPolicy']: new PolicyDocument({
         statements: [
@@ -65,6 +69,7 @@ export class IngestionWorkflow extends Construct {
           }),
         ],
       }),
+      
     },
   });
 
@@ -142,7 +147,7 @@ export class IngestionWorkflow extends Construct {
     outputPath: '$.Payload',
   });
 
-  const createS3BatchManifest = new tasks.LambdaInvoke(this, 'Create S3 Batch Manifest', {
+  const createS3BatchOperationsManifest = new tasks.LambdaInvoke(this, 'Create S3 Batch Manifest', {
     lambdaFunction: createS3BatchManifestLambda,
     integrationPattern: IntegrationPattern.WAIT_FOR_TASK_TOKEN,
     payload: TaskInput.fromObject({
@@ -153,6 +158,58 @@ export class IngestionWorkflow extends Construct {
       sourcePattern: props.sourcePattern,
     }),
     outputPath: '$.Payload',
+  });
+
+  const accountId = Stack.of(this).account;
+
+  const triggerS3BatchOperations = new tasks.CallAwsService(this, 'Trigger S3 BatchOperations', {
+    service: 's3control',
+    action: 'createJob',
+    resultPath: '$.CreateJob',
+    parameters: {
+      AccountId: accountId,
+      ClientRequestToken: JsonPath.uuid(),
+      Priority: 2,
+      Operation: {
+        LambdaInvoke: {
+          FunctionArn: props.processingLambda.functionArn,
+        }
+      },
+      Report: {
+        Bucket: JsonPath.format('arn:aws:s3:::{}', JsonPath.stringAt("$.ManifestBucket")),
+        Format: 'Report_CSV_20180820',
+        Enabled: true,
+        Prefix: 'reports',
+        ReportScope: 'AllTasks'
+      },
+      RoleArn: props.processingLambda.role?.roleArn,
+      Manifest: {
+        Spec: {
+          Format: 'S3BatchOperations_CSV_20180820',
+          Fields: [
+            'Bucket',
+            'Key'
+          ]
+        },
+        Location: {
+          "ObjectArn": JsonPath.format('arn:aws:s3:::{}/{}', JsonPath.stringAt("$.ManifestBucket"),JsonPath.stringAt("$.ManifestKey")),
+          "ETag.$": "$.ManifestEtag"
+        }
+      },
+      ConfirmationRequired: false
+    },
+    iamResources: [ props.processingLambda.functionArn ],
+    additionalIamStatements: [ 
+      new PolicyStatement({
+
+        actions: [
+          'lambda:InvokeFunction'
+        ],
+        effect: cdk.aws_iam.Effect.ALLOW,
+        resources: [ 
+          props.processingLambda.functionArn
+        ]
+      })],
   });
 
   const jobFailed = new sfn.Fail(this, 'Job Failed', {
@@ -167,7 +224,8 @@ export class IngestionWorkflow extends Construct {
 
   // Create chain
   const definition = publishStartWorkflowMessage
-    .next(createS3BatchManifest)
+    .next(createS3BatchOperationsManifest)
+    .next(triggerS3BatchOperations)
     .next(submitJob)
     .next(waitX)
     .next(getStatus)
@@ -195,6 +253,16 @@ export class IngestionWorkflow extends Construct {
   props.mappingsBucket.grantRead(stateMachine.role);
   props.sourceBucket.grantRead(stateMachine.role);
   props.outputBucket.grantWrite(stateMachine.role);
+
+  // grant permissions fro s3control (S3 Batch Operations service)
+  stateMachine.role.addToPrincipalPolicy(new PolicyStatement({
+    // see https://aws.permissions.cloud/api/s3#S3Control_CreateJob for required permissions
+    actions: ['s3control:*', 's3:CreateJob', 'iam:PassRole'],
+    effect: cdk.aws_iam.Effect.ALLOW,
+    resources: ['*'],
+    //principals: [new AccountRootPrincipal()],
+  }));
+  
 
   /** ------------------ Events Rule Definition ------------------ */
 

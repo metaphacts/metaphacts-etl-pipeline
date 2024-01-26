@@ -3,9 +3,8 @@
  */
 package com.metaphacts.etl.lambda;
 
+import java.util.Optional;
 import java.util.regex.Pattern;
-
-import org.eclipse.rdf4j.model.Model;
 
 import io.carml.engine.rdf.RdfRmlMapper;
 
@@ -18,16 +17,14 @@ import io.carml.engine.rdf.RdfRmlMapper;
 public class Mapping {
 
     private final String type;
-    private final Model mappingRules;
-    private final RdfRmlMapper mapper;
+    private final Optional<RdfRmlMapper> mapper;
     private MappingSpec mappingSpec;
     private Pattern includePattern;
     private Pattern excludePattern;
     private boolean processLines = false;
 
-    public Mapping(MappingSpec spec, Model mappingRules, RdfRmlMapper mapper) {
+    public Mapping(MappingSpec spec, Optional<RdfRmlMapper> mapper) {
         this.type = spec.getId();
-        this.mappingRules = mappingRules;
         this.mappingSpec = spec;
         this.mapper = mapper;
 
@@ -55,11 +52,7 @@ public class Mapping {
         return type;
     }
 
-    public Model getMappingRules() {
-        return mappingRules;
-    }
-
-    public RdfRmlMapper getMapper() {
+    public Optional<RdfRmlMapper> getMapper() {
         return mapper;
     }
 

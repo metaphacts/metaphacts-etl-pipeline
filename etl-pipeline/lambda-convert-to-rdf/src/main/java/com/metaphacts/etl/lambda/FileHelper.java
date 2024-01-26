@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +43,7 @@ import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 /**
  * Helper class for file related functionality
@@ -341,7 +343,45 @@ public class FileHelper {
      */
     public void uploadToS3(String bucket, String key, Path localPath) {
         PutObjectRequest request = PutObjectRequest.builder().bucket(bucket).key(key).build();
-        /* PutObjectResponse response = */s3.putObject(request, RequestBody.fromFile(localPath));
+        PutObjectResponse response = s3.putObject(request, RequestBody.fromFile(localPath));
+        logger.trace("Successfully uploaded file {} to {}/{}: {}", localPath, bucket, key, response);
+    }
+
+    /**
+     * Download data from a S3 bucket.
+     * 
+     * @param bucket    bucket to upload to
+     * @param key       key (path) within the bucket
+     * @param localPath path to local destination file. The path is interpreted
+     *                  relative to the process' current directory. The parent
+     *                  folder will be created if it does not yet exist.
+     * @throws IOException in case of errors
+     */
+    public void downloadFile(String bucket, String key, Path localPath)
+            throws IOException {
+        ensureFolderExists(localPath.getParent());
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucket).key(key).build();
+
+        try (ResponseInputStream<GetObjectResponse> response = s3.getObject(getObjectRequest)) {
+            try (OutputStream out = new FileOutputStream(localPath.toFile())) {
+                // write to local file
+                IOUtils.copy(response, out);
+            }
+        }
+    }
+
+    public Path ensureFolderExists(Path outputFolder) {
+        if (!Files.isDirectory(outputFolder)) {
+            try {
+                logger.debug("Creating folder {}", outputFolder);
+                Files.createDirectories(outputFolder);
+            } catch (IOException e) {
+                logger.warn("Failed to create folder {}: {}", outputFolder, e.getMessage());
+                logger.debug("Details: ", e);
+                throw new RuntimeException(String.format("Failed to create folder %s", outputFolder), e);
+            }
+        }
+        return outputFolder;
     }
 
     /**

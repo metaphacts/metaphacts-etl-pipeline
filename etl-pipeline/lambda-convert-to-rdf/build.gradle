@@ -28,6 +28,9 @@ repositories {
 }
 
 dependencies {
+    // temporary fix for the java.lang.NoSuchMethodError error when bundling the zip
+    implementation 'org.apache.commons:commons-compress:1.25.0'
+    
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
     implementation enforcedPlatform("${quarkusPlatformGroupId}:quarkus-amazon-services-bom:${quarkusPlatformVersion}")
     implementation 'io.quarkus:quarkus-arc'

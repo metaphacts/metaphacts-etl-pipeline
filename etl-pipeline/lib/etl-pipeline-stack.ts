@@ -106,12 +106,21 @@ export class EtlPipelineStack extends cdk.Stack {
       autoDeleteObjects: false,
     });
 
+    const lambdaMemoryMB = props?.config.RDFCONVERT_MEMORY ? Number(props?.config.RDFCONVERT_MEMORY) : undefined;
+    const lambdaStorageMB = props?.config.RDFCONVERT_STORAGE ? cdk.Size.mebibytes(Number(props.config.RDFCONVERT_STORAGE)) : undefined;
+    const lambdaTimeoutMinutes = props?.config.RDFCONVERT_TIMEOUT ? cdk.Duration.minutes(Number(props.config.RDFCONVERT_TIMEOUT)) : undefined;
+    const mappingsPath = props?.config.MAPPINGS_PREFIX || '';
+
     // RDF conversion lambda
     const rdfConversionLambda = new ConvertToRDFLambda(this, 'ConvertToRDFLambda', {
+      lambdaMemoryMB: lambdaMemoryMB,
+      lambdaStorageMB: lambdaStorageMB,
+      lambdaTimeoutMinutes: lambdaTimeoutMinutes,
       sourceBucket: sourceBucket,
       mappingsBucket: mappingsBucket,
-      mappingsPath: props?.config.MAPPINGS_PREFIX || '',
+      mappingsPath: mappingsPath,
       outputBucket: outputBucket,
+      runtimeBucket: runtimeBucket
     });
     
     // EC2 instance for ingestion
@@ -150,6 +159,7 @@ export class EtlPipelineStack extends cdk.Stack {
       mappingsBucket: mappingsBucket,
       runtimeBucket: runtimeBucket,
       outputBucket: outputBucket,
+      processingLambda: rdfConversionLambda.conversionLambda,
       //mappingsPath?: string,
     });
   }

@@ -89,8 +89,8 @@ public class ConversionStats implements ConversionListener {
         b.append("processed ")
             .append(inputFileCount).append(" input files (avg ")
             .append(averageTimeInputFiles).append("ms per input file), ")
-            .append(documentCount).append(" JSON docs (avg ")
-            .append(averageTimeRDFConversions).append("ms per JSON doc), ")
+            .append(documentCount).append(" docs (avg ")
+            .append(averageTimeRDFConversions).append("ms per doc), ")
             .append(rdfStatementCount).append(" RDF statements, ")
             .append(successfulConversionCount).append(" successful, ")
             .append(failedConversionCount).append(" failed");
