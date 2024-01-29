@@ -6,6 +6,36 @@
     },
     "tasks": [
         {
+            "taskId": "dGFza2lkZ29lc2hlcmUK-5",
+            "s3Key": "dimensions-ai-ontology.ttl.trig",
+            "s3VersionId": "1",
+            "s3BucketArn": "arn:aws:s3:us-east-1:123456789012:source-bucket"
+        },
+        {
+            "taskId": "dGFza2lkZ29lc2hlcmUK-6",
+            "s3Key": "dimensions-dataset-dcat.trig",
+            "s3VersionId": "1",
+            "s3BucketArn": "arn:aws:s3:us-east-1:123456789012:source-bucket"
+        },
+        {
+            "taskId": "dGFza2lkZ29lc2hlcmUK-7",
+            "s3Key": "document-annotation.ttl.trig",
+            "s3VersionId": "1",
+            "s3BucketArn": "arn:aws:s3:us-east-1:123456789012:source-bucket"
+        },
+        {
+            "taskId": "dGFza2lkZ29lc2hlcmUK-8",
+            "s3Key": "fabio.ttl.trig",
+            "s3VersionId": "1",
+            "s3BucketArn": "arn:aws:s3:us-east-1:123456789012:source-bucket"
+        },
+        {
+            "taskId": "dGFza2lkZ29lc2hlcmUK-9",
+            "s3Key": "schema.ttl.trig",
+            "s3VersionId": "1",
+            "s3BucketArn": "arn:aws:s3:us-east-1:123456789012:source-bucket"
+        },
+        {
             "taskId": "dGFza2lkZ29lc2hlcmUK-1",
             "s3Key": "dimensions-covid19-export-2021-09-01-h15-01-02_clinical_trials.csv",
             "s3VersionId": "1",
