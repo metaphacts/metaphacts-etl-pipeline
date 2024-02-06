@@ -134,6 +134,7 @@ export class EtlPipelineStack extends cdk.Stack {
     const instanceType = new CfnParameter(this, 'instanceType', {
       default: props?.config.INSTANCE_TYPE || 't3.xlarge'
     });
+    const executionSchedule = props?.config.EXECUTION_SCHEDULE || undefined;
 
     console.log('Environment:');
     //console.log(process.env);
@@ -161,6 +162,7 @@ export class EtlPipelineStack extends cdk.Stack {
       outputBucket: outputBucket,
       processingLambda: rdfConversionLambda.conversionLambda,
       //mappingsPath?: string,
+      executionSchedule: executionSchedule,
     });
   }
 }

@@ -46,6 +46,12 @@ export interface IngestionWorkflowProps {
   outputBucket: s3.Bucket,
   /** lambda function to process each source file  */
   processingLambda: lambda.Function,
+
+  /** schedule execution when configured
+   * To run every day at 6PM UTC, use the expression '0 18 ? * MON-FRI'
+   * See https://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html
+   */
+  executionSchedule?: string,
 }
 
 export class IngestionWorkflow extends Construct {
@@ -120,21 +126,51 @@ export class IngestionWorkflow extends Construct {
   const publishStartWorkflowMessage = new tasks.SnsPublish(this, 'StartWorkflow', {
     topic: props?.notificationTopic,
     message: sfn.TaskInput.fromObject({
-      message: 'Launching RDF conversion'
+      message: 'Launching ETL Workflow'
     }),
+    subject: 'ETL: Launching Workflow'
   });
 
   const publishEndWorkflowMessage = new tasks.SnsPublish(this, 'EndWorkflow', {
     topic: props?.notificationTopic,
     message: sfn.TaskInput.fromJsonPathAt('$.Payload'),
     resultPath: '$.sns',
+    subject: 'ETL: Workflow is finished'
   });
 
-  const submitJob = new tasks.LambdaInvoke(this, 'Submit Job', {
-    lambdaFunction: submitLambda,
-    // Lambda's result is in the attribute `Payload`
-    outputPath: '$.Payload',
+
+  const publishStartRDFConversionMessage = new tasks.SnsPublish(this, 'StartRDFConversion', {
+    topic: props?.notificationTopic,
+    message: sfn.TaskInput.fromObject({
+      message: 'Starting RDF conversion'
+    }),
+    subject: 'ETL: Starting RDF conversion'
   });
+
+  const publishEndRDFConversionMessage = new tasks.SnsPublish(this, 'EndRDFConversion', {
+    topic: props?.notificationTopic,
+    message: sfn.TaskInput.fromObject({
+      message: 'RDF conversion is finished'
+    }),
+    subject: 'ETL: RDF conversion is finished'
+  });
+
+  const publishStartIngestionMessage = new tasks.SnsPublish(this, 'StartIngestion', {
+    topic: props?.notificationTopic,
+    message: sfn.TaskInput.fromObject({
+      message: 'Starting Ingestion'
+    }),
+    subject: 'ETL: Starting Ingestion'
+  });
+
+  const publishEndIngestionMessage = new tasks.SnsPublish(this, 'EndIngestion', {
+    topic: props?.notificationTopic,
+    message: sfn.TaskInput.fromObject({
+      message: 'Ingestion is finished'
+    }),
+    subject: 'ETL: Ingestion is finished'
+  });
+
   const waitX = new sfn.Wait(this, 'Wait X Seconds', {
     /**
      *  You can also implement with the path stored in the state like:
@@ -193,7 +229,7 @@ export class IngestionWorkflow extends Construct {
         },
         Location: {
           "ObjectArn": JsonPath.format('arn:aws:s3:::{}/{}', JsonPath.stringAt("$.ManifestBucket"),JsonPath.stringAt("$.ManifestKey")),
-          "ETag.$": "$.ManifestEtag"
+          "ETag": sfn.JsonPath.stringAt("$.ManifestEtag")
         }
       },
       ConfirmationRequired: false
@@ -212,6 +248,25 @@ export class IngestionWorkflow extends Construct {
       })],
   });
 
+  const getS3BatchOperationsStatus = new tasks.CallAwsService(this, 'Get S3 BatchOperations Status', {
+    service: 's3control',
+    action: 'describeJob',
+    resultPath: '$.DescribeJob',
+    parameters: {
+      AccountId: accountId,
+      JobId: sfn.JsonPath.stringAt('$.CreateJob.JobId'),
+    },
+    iamResources: [ '*' ],
+  });
+
+  const waitForRDFConversion = new sfn.Wait(this, 'Wait for RDF Conversion', {
+    /**
+     *  You can also implement with the path stored in the state like:
+     *  sfn.WaitTime.secondsPath('$.waitSeconds')
+     */
+    time: sfn.WaitTime.duration(cdk.Duration.seconds(30)),
+  });
+
   const jobFailed = new sfn.Fail(this, 'Job Failed', {
     cause: 'AWS Batch Job Failed',
     error: 'DescribeJob returned FAILED',
@@ -224,22 +279,34 @@ export class IngestionWorkflow extends Construct {
 
   // Create chain
   const definition = publishStartWorkflowMessage
+    .next(publishStartRDFConversionMessage)
     .next(createS3BatchOperationsManifest)
     .next(triggerS3BatchOperations)
-    .next(submitJob)
-    .next(waitX)
-    .next(getStatus)
-    .next(new sfn.Choice(this, 'Job Complete?')
+    .next(waitForRDFConversion)
+    .next(getS3BatchOperationsStatus)
+    .next(new sfn.Choice(this, 'RDF Conversion Complete?')
       // Look at the "status" field
-      .when(sfn.Condition.stringEquals('$.status', 'FAILED'), jobFailed)
-      .when(sfn.Condition.stringEquals('$.status', 'SUCCEEDED'), finalStatus)
-      .otherwise(waitX));
+      .when(sfn.Condition.stringEquals('$.DescribeJob.Job.Status', 'New'), waitForRDFConversion)
+      .when(sfn.Condition.stringEquals('$.DescribeJob.Job.Status', 'Active'), waitForRDFConversion)
+      .when(sfn.Condition.stringEquals('$.DescribeJob.Job.Status', 'Completing'), waitForRDFConversion)
+      .when(sfn.Condition.stringEquals('$.DescribeJob.Job.Status', 'Complete'), publishEndRDFConversionMessage)
+      .when(sfn.Condition.stringEquals('$.DescribeJob.Job.Status', 'Failed'), finalStatus)
+      .otherwise(waitForRDFConversion));
 
-  finalStatus.next(publishEndWorkflowMessage);
+  publishEndRDFConversionMessage
+    .next(finalStatus);
+
+  finalStatus
+    // TODO check %error and %succeeded
+    .next(publishStartIngestionMessage)
+    // TODO trigger ingestion
+    .next(publishEndIngestionMessage)
+    .next(publishEndWorkflowMessage);
 
   // Create state machine
-  const stateMachine = new sfn.StateMachine(this, 'CronStateMachine', {
+  const stateMachine = new sfn.StateMachine(this, 'ETLStateMachine', {
     definitionBody: sfn.DefinitionBody.fromChainable(definition),
+    comment: 'ETL Pipeline',
     timeout: cdk.Duration.minutes(5),
   });
 
@@ -257,7 +324,7 @@ export class IngestionWorkflow extends Construct {
   // grant permissions fro s3control (S3 Batch Operations service)
   stateMachine.role.addToPrincipalPolicy(new PolicyStatement({
     // see https://aws.permissions.cloud/api/s3#S3Control_CreateJob for required permissions
-    actions: ['s3control:*', 's3:CreateJob', 'iam:PassRole'],
+    actions: ['s3control:*', 's3:CreateJob', 's3:DescribeJob', 'iam:PassRole'],
     effect: cdk.aws_iam.Effect.ALLOW,
     resources: ['*'],
     //principals: [new AccountRootPrincipal()],
@@ -266,13 +333,23 @@ export class IngestionWorkflow extends Construct {
 
   /** ------------------ Events Rule Definition ------------------ */
 
+  // schedule execution when configured
   /**
-   *  Run every day at 6PM UTC
+   * Run every day at 6PM UTC: '0 18 ? * MON-FRI'
    * See https://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html
    */
-  const rule = new events.Rule(this, 'Rule', {
-    schedule: events.Schedule.expression('cron(0 18 ? * MON-FRI *)')
-  });
-  rule.addTarget(new targets.SfnStateMachine(stateMachine));
+  const schedule = props?.executionSchedule || undefined;
+  if (schedule) {
+    const cronExpression = 'cron(' + schedule + ')';
+    /**
+     *  Run every day at 6PM UTC
+     * See https://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html
+     */
+    const rule = new events.Rule(this, 'Rule', {
+      schedule: events.Schedule.expression(cronExpression)
+    });
+    rule.addTarget(new targets.SfnStateMachine(stateMachine));
+  }
+
   }
 }

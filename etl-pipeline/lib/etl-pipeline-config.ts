@@ -53,6 +53,12 @@ export type EtlPipelineConfigProps = {
   RDFCONVERT_STORAGE?: string,
   /** RDF conversion: timeout for conversion (minutes), default 5 minutes. */
   RDFCONVERT_TIMEOUT?: string,
+
+  /** schedule execution when configured
+   * To run every day at 6PM UTC, use the expression '0 18 ? * MON-FRI'
+   * See https://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html
+   */
+  EXECUTION_SCHEDULE?: string,
 };
 
 export const getConfig = (): EtlPipelineConfigProps => ({
@@ -68,4 +74,5 @@ export const getConfig = (): EtlPipelineConfigProps => ({
   RDFCONVERT_MEMORY: process.env.RDFCONVERT_MEMORY,
   RDFCONVERT_STORAGE: process.env.RDFCONVERT_STORAGE,
   RDFCONVERT_TIMEOUT: process.env.RDFCONVERT_TIMEOUT,
+  EXECUTION_SCHEDULE: process.env.EXECUTION_SCHEDULE,
 });
